@@ -1,7 +1,6 @@
 const known_certs_hashed = {
-	"Solo Secure": "8e06b4060fc58677055285ce3ee6a69a0666b59f4c2a0a00a025c7f0f3ce9a50",
-	"Solo Hacker": "2a0a22ceaedac89b3d02e2b53cbfaa763c6efa8a73f03976ec72fe4c5d9a1ff3",
-	"U2F Zero":    "ded15e86dae60b48f7507bc81d7471b61102c2eb844bd954b653164d8c0cb677",
+	"Nitrokey FIDO2":             "8e06b4060fc58677055285ce3ee6a69a0666b59f4c2a0a00a025c7f0f3ce9a50",
+	"Nitrokey FIDO2 Development": "2a0a22ceaedac89b3d02e2b53cbfaa763c6efa8a73f03976ec72fe4c5d9a1ff3",
 };
 
 // invert known_certs_hashed

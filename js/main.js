@@ -170,13 +170,13 @@ async function inspect() {
   app.what_is_it = what_is_it;
 
   if (typeof what_is_it === "undefined") {
-    console.log("UNKNOWN ATTESTATION CERTIFIATE");
+    console.log("UNKNOWN ATTESTATION CERTIFIATE", certificate_fingerprint);
   } else {
-    if (what_is_it == "Solo Secure") {
+    if (what_is_it == "Nitrokey FIDO2") {
       app.is_solo_secure = true;
       app.is_solo_hacker = false;
     }
-    if (what_is_it == "Solo Hacker") {
+    if (what_is_it == "Nitrokey FIDO2 Development") {
       app.is_solo_secure = false;
       app.is_solo_hacker = true;
     }
@@ -203,7 +203,7 @@ async function fetch_firmware() {
   // TODO: cache downloads
   url_base = "data/";
   if (app.is_solo_secure) {
-    let file_url = url_base + "firmware-secure-" + app.stable_version + ".json";
+    let file_url = url_base + "fido2-firmware-" + app.stable_version + ".json";
     console.log(file_url);
 
     let fetched = await fetch(file_url);
@@ -219,7 +219,7 @@ async function fetch_firmware() {
   }
 
   if (app.is_solo_hacker) {
-    let file_url = url_base + "firmware-hacker-" + app.stable_version + ".hex";
+    let file_url = url_base + "fido2-firmware-dev-" + app.stable_version + ".hex";
     console.log(file_url);
     let fetched = await fetch(file_url);
     let firmware = await fetched.text();
