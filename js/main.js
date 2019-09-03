@@ -3,6 +3,7 @@ var app = new Vue({
   data: {
     platform_description: '',
     webauthn_support: '',
+    what_is_it: '',
     solo_version_parts: null,
     solo_version: null,
     stable_version_parts: null,
@@ -166,6 +167,7 @@ async function inspect() {
   var certificate = attestation.attStmt.x5c[0];
   let certificate_fingerprint = sha256(certificate);
   let what_is_it = known_certs_lookup[certificate_fingerprint];
+  app.what_is_it = what_is_it;
 
   if (typeof what_is_it === "undefined") {
     console.log("UNKNOWN ATTESTATION CERTIFIATE");
