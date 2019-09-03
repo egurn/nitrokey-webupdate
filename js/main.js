@@ -116,7 +116,7 @@ async function create_direct_attestation(timeout) {
     // GOAL: register a key signed by key's attestation certificate
     let publicKeyCredentialCreationOptions = {
 		rp: {
-			name: 'SoloKeys Service Station',
+			name: 'Nitrokey Web Update',
 			id: rp_id,
 		},
 
@@ -130,8 +130,8 @@ async function create_direct_attestation(timeout) {
 
 		user: {
 			id: new Uint8Array([0, 1, 2, 3, 4, 5, 6, 7]),
-			name: "little-solo-keys@solokeys.com",
-			displayName: "Lil' Solo Keys",
+			name: "test-email@nitrokey.com",
+			displayName: "Nitrokey test user",
 		},
 
 		timeout: timeout,
