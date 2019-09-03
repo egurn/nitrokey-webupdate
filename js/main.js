@@ -76,7 +76,7 @@ async function check_version(){
 
 async function fetch_stable_version() {
   var response = await fetch(
-    "https://raw.githubusercontent.com/solokeys/solo/master/STABLE_VERSION",
+    "https://raw.githubusercontent.com/Nitrokey/nitrokey-fido2-firmware/master/STABLE_VERSION",
     {cache: "no-store"}
   );
   let stable_version_github = (await response.text()).trim();
