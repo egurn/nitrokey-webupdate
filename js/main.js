@@ -204,8 +204,8 @@ async function inspect() {
 async function fetch_firmware() {
   // TODO: cache downloads
   url_base = "data/";
-  if (app.is_solo_secure) {
-    let file_url = url_base + "fido2-firmware-" + app.stable_version + ".json";
+    let fname = firmware_file_name[app.what_is_it]
+    let file_url = url_base + fname + app.stable_version + ".json";
     console.log(file_url);
 
     let fetched = await fetch(file_url);
@@ -218,19 +218,7 @@ async function fetch_firmware() {
       firmware: firmware,
       signature: signature,
     }
-  }
 
-  if (app.is_solo_hacker) {
-    let file_url = url_base + "fido2-firmware-dev-" + app.stable_version + ".hex";
-    console.log(file_url);
-    let fetched = await fetch(file_url);
-    let firmware = await fetched.text();
-
-    return {
-      firmware: firmware,
-      signature: null,
-    }
-  }
 }
 
 async function is_bootloader() {
