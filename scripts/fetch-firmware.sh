@@ -1,5 +1,8 @@
 #!/bin/bash -xe
 
+ls -l data > data.previous
+sha256sum data/* > data.previous
+
 rm -f data/*
 
 STABLEURL=https://raw.githubusercontent.com/Nitrokey/nitrokey-fido2-firmware/master/STABLE_VERSION
@@ -27,4 +30,9 @@ sha256sum -c ${BINMAIN}.sha2
 sha256sum -c ${BINDEV}.sha2
 popd
 
+ls -l data > data.current
+sha256sum data/* > data.current
+
 ls -lh data
+
+diff data.previous data.current
