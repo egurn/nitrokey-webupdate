@@ -1,7 +1,7 @@
 #!/bin/bash -xe
 
 ls -l data > data.previous
-sha256sum data/* > data.previous
+sha256sum data/* >> data.previous
 
 rm -f data/*
 
@@ -31,7 +31,7 @@ sha256sum -c ${BINDEV}.sha2
 popd
 
 ls -l data > data.current
-sha256sum data/* > data.current
+sha256sum data/* >> data.current
 
 ls -lh data
 
