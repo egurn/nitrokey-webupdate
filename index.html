@@ -82,9 +82,9 @@
 
     <section class="section">
       <div class="container">
-        <p class="content" v-if="is_solo_secure">Your key is a Nitrokey FIDO2!</p>
-        <p class="content" v-if="is_solo_hacker">Your key is a Nitrokey FIDO2 Development!</p>
+        <p class="content" v-if="what_is_it">Your key is a {{what_is_it}}!</p>
       </div>
+            <br><br>
 
       <template v-if="correct_firmware">
         <div class="container" v-if="needs_update">
@@ -93,8 +93,7 @@
             <br>
             Please unplug your key, and plug in while keeping pressed until the LED blinks.
           </p>
-          <button onclick="update()" class="button is-primary" v-if="is_solo_secure">Update Nitrokey FIDO2</button>
-          <button onclick="update()" class="button is-primary" v-if="is_solo_hacker">Update Nitrokey FIDO2 Development</button>
+          <button onclick="update()" class="button is-primary" v-if="what_is_it">Update {{what_is_it}}</button>
           <p>
             <span v-if="update_status" v-text="update_status"></span>
             <br>
@@ -107,6 +106,8 @@
             <br>
             For this, unplug your key, and plug in while keeping pressed until the LED blinks.
           </p>
+
+            <br><br>
 
           <template v-if="cannot_flash">
             <article class="message is-danger">
@@ -133,8 +134,7 @@
             </article>
           </template>
 
-          <button onclick="update()" class="button is-primary" v-if="is_solo_secure">Reflash Nitrokey FIDO2</button>
-          <button onclick="update()" class="button is-primary" v-if="is_solo_hacker">Reflash Nitrokey FIDO2 Development</button>
+          <button onclick="update()" class="button is-primary" v-if="what_is_it">Reflash {{what_is_it}}</button>
           <p>
             <span v-if="update_status" v-text="update_status"></span>
             <br>
@@ -178,12 +178,23 @@
       <div class="container">
         <button onclick="toggle_advanced_mode()" class="button is-light">Advanced Mode (DANGER ZONE!)</button>
         <template v-if="advanced_mode">
-          <br>
-          <br>
-          <button onclick="update_secure()" class="button is-primary">I CONFIRM: Nitrokey FIDO2 plugged in - reflash it</button>
-          <br>
-          <br>
-          <button onclick="update_hacker()" class="button is-primary">I CONFIRM: Nitrokey FIDO2 Development plugged in - reflash it</button>
+
+          <br><br>
+
+          <select v-model="user_selected_device">
+          <option disabled value="">Please select device</option>
+          <option
+            v-for="(option, index) in supported_devices"
+            :key="index"
+            :value="option" >
+            {{ option }}
+          </option>
+        </select>
+
+          <br><br>
+          <button onclick="update_secure()" class="button is-primary" v-if="user_selected_device">I CONFIRM: {{user_selected_device}} plugged in - reflash it</button>
+
+
         </template>
       </div>
     </section>

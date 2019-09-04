@@ -23,6 +23,8 @@ var app = new Vue({
     about_to_flash: null,
     p_progress: null,
     is_linux: null,
+    user_selected_device: '',
+    supported_devices: supported_devices,
   }
 });
 
@@ -230,11 +232,7 @@ async function is_bootloader() {
 }
 
 async function update_hacker() {
-  app.is_solo_hacker = true;
-  app.is_solo_secure = false;
-  await reset_messages();
-  await toggle_advanced_mode();
-  await update();
+  await update_secure();
 }
 
 async function update_secure() {
@@ -247,10 +245,16 @@ async function update_secure() {
 
 async function update() {
   await reset_messages();
+
+  if (app.user_selected_device){
+    app.what_is_it = app.user_selected_device;
+  }
+
   if (!await is_bootloader()) {
     app.cannot_flash = true;
     return
   }
+
   app.update_status = "DOWNLOADING FIRMWARE";
   let signed_firmware = await fetch_firmware();
   app.signed_firmware = signed_firmware;

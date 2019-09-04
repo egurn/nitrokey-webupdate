@@ -1,11 +1,17 @@
 const known_certs_hashed = {
 	"Nitrokey FIDO2":             "8e06b4060fc58677055285ce3ee6a69a0666b59f4c2a0a00a025c7f0f3ce9a50",
 	"Nitrokey FIDO2 Development": "2a0a22ceaedac89b3d02e2b53cbfaa763c6efa8a73f03976ec72fe4c5d9a1ff3",
+	"Nitrokey FIDO2 Development 2": "2a0a22ceaedac89b3d02e2b53cbfaa763c6efa8a73f03976ec72fe4c5d9a1ff3",
 };
 const firmware_file_name = {
 	"Nitrokey FIDO2":             "fido2-firmware-",
 	"Nitrokey FIDO2 Development": "fido2-firmware-dev-",
+	"Nitrokey FIDO2 Development 2": "fido2-firmware-dev-",
+	"Nitrokey FIDO2 Development 3": "fido2-firmware-dev-",
+	"Nitrokey FIDO2 Development 4": "fido2-firmware-dev-",
 };
+
+const supported_devices = Object.keys(firmware_file_name);
 
 // invert known_certs_hashed
 const known_certs_lookup = Object.assign(
