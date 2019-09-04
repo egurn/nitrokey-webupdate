@@ -119,7 +119,9 @@ async function create_direct_attestation(timeout) {
 			name: 'Nitrokey Web Update',
 			id: rp_id,
 		},
-
+    authenticatorSelection: {
+      userVerification: 'discouraged',
+    },
 		attestation: 'direct',
 
 		challenge,
