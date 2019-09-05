@@ -167,13 +167,11 @@ async function inspect() {
   app.is_solo_secure = null;
   app.is_solo_hacker = null;
   console.log("app.solo_version", app.solo_version);
-  if (app.solo_version != "unknown" && !(app.solo_version == null)) {
     console.log("PRE-CHECKING IF IN BOOTLOADER");
     if (await is_bootloader()) {
       app.cannot_inspect = true;
       return;
     }
-  }
   console.log("ASKING FOR ATTESTATION");
   app.ask_for_attestation = true;
   let credential = await create_direct_attestation();
