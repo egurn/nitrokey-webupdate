@@ -52,6 +52,20 @@ async function inspect_browser() {
   }
 }
 
+async function run_bootloader(){
+
+  await ctaphid_via_webauthn(
+    CMD.solo_bootloader, null, null, 1000
+  ).then(response => {
+    console.log("bootloader RESPONSE", response);
+  }
+  )
+  .catch(error => {
+    console.log(error);
+  });
+
+}
+
 async function check_version(){
   await ctaphid_via_webauthn(
     // option a) timeout --> leads to ugly persistent popup in chrome (firefox is better)

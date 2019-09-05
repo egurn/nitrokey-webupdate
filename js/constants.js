@@ -29,6 +29,7 @@ const CMD = {
     solo_version: 0x14,
     solo_rng: 0x15,
     solo_pubkey: 0x16,
+    solo_bootloader: 0x20,
 
     boot_write: 0x40,   // 64
     boot_done: 0x41,    // 65
@@ -40,6 +41,7 @@ const CMD = {
 const command_codes = {
 	0x14: "SOLO VERSION",
 	0x15: "SOLO RNG",
+	0x20: "SOLO BOOTLOADER",
 
 	0x40: "BOOT WRITE",
 	0x41: "BOOT DONE",
