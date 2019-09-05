@@ -33,6 +33,7 @@ async function reset_messages() {
   app.cannot_inspect = null;
   app.cannot_flash = null;
   app.update_success = null;
+  app.update_failure = null;
   app.update_progress = null;
   app.ask_for_attestation = null;
 }
