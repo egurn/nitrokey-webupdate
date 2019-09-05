@@ -19,6 +19,7 @@ var app = new Vue({
     advanced_mode: false,
     cannot_inspect: null,
     cannot_flash: null,
+    bootloader_called: null,
     update_success: null,
     update_failure: null,
     about_to_flash: null,
@@ -32,6 +33,7 @@ var app = new Vue({
 async function reset_messages() {
   app.cannot_inspect = null;
   app.cannot_flash = null;
+  app.bootloader_called = null;
   app.update_success = null;
   app.update_failure = null;
   app.update_progress = null;
@@ -61,6 +63,8 @@ async function run_bootloader(){
   ).then(response => {
     console.log("bootloader RESPONSE", response);
     // FIXME handle failure in call
+    app.cannot_flash = null;
+    app.bootloader_called = true;
   }
   )
   .catch(error => {
