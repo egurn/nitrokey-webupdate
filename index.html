@@ -70,7 +70,7 @@
             <div class="message-body">
               <ul>
                 <li class="list-item"> To inspect your key, unplug, replug, and try to inspect again </li>
-                <li class="list-item"> If your key remains in bootloader mode, try "advanced mode" below, and flash the appropriate firmware (secure/hacker).</li>
+                <li class="list-item"> If your key remains in bootloader mode, try "advanced mode" below, and flash the appropriate firmware.</li>
               </ul>
             </div>
           </article>
@@ -150,6 +150,17 @@
               </div>
               <div class="message-body">
                 Your key is now updated.
+              </div>
+            </article>
+          </template>
+
+          <template v-if="update_failure">
+            <article class="message is-warning">
+              <div class="message-header">
+                <p>UPDATE FAILED</p>
+              </div>
+              <div class="message-body">
+                The update process has been interrupted. Please run the update once again, and do not tab out during the process.
               </div>
             </article>
           </template>

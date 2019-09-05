@@ -20,6 +20,7 @@ var app = new Vue({
     cannot_inspect: null,
     cannot_flash: null,
     update_success: null,
+    update_failure: null,
     about_to_flash: null,
     p_progress: null,
     is_linux: null,
@@ -190,14 +191,7 @@ async function inspect() {
   if (typeof what_is_it === "undefined") {
     console.log("UNKNOWN ATTESTATION CERTIFIATE", certificate_fingerprint);
   } else {
-    if (what_is_it == "Nitrokey FIDO2") {
       app.is_solo_secure = true;
-      app.is_solo_hacker = false;
-    }
-    if (what_is_it == "Nitrokey FIDO2 Development") {
-      app.is_solo_secure = false;
-      app.is_solo_hacker = true;
-    }
   };
 
   // now we know a key is plugged in
@@ -297,6 +291,13 @@ async function update() {
               addr.value + i,
               chunk
           );
+          if (typeof p === "undefined") {
+              console.log("...FAILURE");
+              app.update_failure = true;
+              app.update_status = "FLASHING FIRMWARE FAILED";
+              return;
+          }
+
           TEST(p.status != 'CTAP1_SUCCESS', 'Device wrote data');
 
           var progress = (((i/data.length) * 100 * 100) | 0)/100;
