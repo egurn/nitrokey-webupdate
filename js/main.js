@@ -59,6 +59,7 @@ async function run_bootloader(){
     CMD.solo_bootloader, null, null, 1000
   ).then(response => {
     console.log("bootloader RESPONSE", response);
+    // FIXME handle failure in call
   }
   )
   .catch(error => {
