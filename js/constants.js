@@ -36,6 +36,7 @@ const CMD = {
     boot_check: 0x42,   // 66
     boot_erase: 0x43,   // 67
     boot_version: 0x44, // 68
+    boot_pubkey: 0x48,
 };
 
 const command_codes = {

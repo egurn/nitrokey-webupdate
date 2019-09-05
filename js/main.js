@@ -231,6 +231,10 @@ async function fetch_firmware() {
 }
 
 async function is_bootloader() {
+  let responsep = await ctaphid_via_webauthn(CMD.boot_pubkey, null, null, 1000);
+  console.log("Boot pubkey", responsep);
+  let responsev = await ctaphid_via_webauthn(CMD.boot_version, null, null, 1000);
+  console.log("Boot version", responsev);
   let response = await ctaphid_via_webauthn(CMD.boot_check, null, null, 1000);
   // console.log(response);
   let _is_bootloader = !(response == null);
