@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Solo Webupdate</title>
+    <title>Nitrokey FIDO2 Webupdate</title>
     <link rel="stylesheet" href="css/styles.css">
     <script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
 </head>
@@ -13,7 +13,7 @@
     <section class="section">
       <div class="container">
         <h1 class="title">
-          Solo Webupdate
+          Nitrokey FIDO2 Webupdate
         </h1>
         <p class="content">
           <!-- https://stackoverflow.com/a/47033801/4768845 -->
@@ -23,12 +23,12 @@
           <span v-if="webauthn_support" v-text="webauthn_support"></span>
           <br>
 
-          Solo firmware version:
+          Nitrokey FIDO2 firmware version:
           <span v-if="solo_version" v-text="solo_version"></span>
           <span v-else>unknown</span>
           <br>
 
-          Latest Solo firmware version:
+          Latest Nitrokey FIDO2 firmware version:
           <span v-if="stable_version" v-text="stable_version"></span>
           <span v-else>unknown</span>
         </p>
@@ -39,7 +39,7 @@
             </div>
             <div class="message-body">
               <p>On Linux, you likely need "udev rules" installed to use your key.</p>
-              <p>See <a href="https://docs.solokeys.io/solo/udev/" target="_blank">https://docs.solokeys.io/solo/udev/</a> for more information.</p>
+              <p>See <a href="https://docs.solokeys.io/solo/udev/">https://docs.solokeys.io/solo/udev/</a> for more information.</p>
             </div>
           </div>
         </template>
@@ -68,8 +68,7 @@
             </div>
             <div class="message-body">
               <ul>
-                <li class="list-item"> To inspect your key, unplug, replug, and try to inspect again </li>
-                <li class="list-item"> If your key remains in bootloader mode, try "advanced mode" below, and flash the appropriate firmware (secure/hacker).</li>
+                <li class="list-item"> Please select "advanced mode" below, and flash the appropriate firmware.</li>
               </ul>
             </div>
           </article>
@@ -82,33 +81,33 @@
 
     <section class="section">
       <div class="container">
-        <p class="content" v-if="is_solo_secure">Your key is a Solo Secure!</p>
-        <p class="content" v-if="is_solo_hacker">Your key is a Solo Hacker!</p>
+        <p class="content" v-if="what_is_it">Your key is a {{what_is_it}}!</p>
       </div>
+            <br><br>
 
       <template v-if="correct_firmware">
         <div class="container" v-if="needs_update">
           <p>
             Since the firmware is out of date, it needs an update.
             <br>
-            Please unplug your key, and plug it back in while holding the button pressed until the LED blinks yellow.
-            <br>
-            You may let go of the button once the LED blinks yellow.
+            Please unplug your key, and plug in while keeping pressed until the LED blinks.
           </p>
-          <button onclick="update()" class="button is-primary" v-if="is_solo_secure">Update Solo Secure</button>
-          <button onclick="update()" class="button is-primary" v-if="is_solo_hacker">Update Solo Hacker</button>
+          <button onclick="update()" class="button is-primary" v-if="what_is_it">Update {{what_is_it}}</button>
           <p>
+            <br>
+            <br>
             <span v-if="update_status" v-text="update_status"></span>
+            <br>
             <br>
             <span v-if="update_progress" v-text="update_progress"></span>
           </p>
         </div>
         <div class="container" v-else-if="is_solo_secure || is_solo_hacker">
           <p>
-            Your firmware seems up to date! For testing, you can flash it again.
-            <br>
-            For this, unplug your key, and plug in while keeping pressed until the LED blinks yellow.
+            Your firmware seems up to date! There is no need to run the update.
           </p>
+
+            <br><br>
 
           <template v-if="cannot_flash">
             <article class="message is-danger">
@@ -116,9 +115,23 @@
                 <p>DEVICE IS NOT IN BOOTLOADER MODE</p>
               </div>
               <div class="message-body">
-                <p>Please unplug your key, and plug in while keeping pressed until the LED blinks yellow.</p>
-                <p>Then try to flash again</p>
+                <p>Please press 'Run bootloader' button, and then try to flash again</p>
               </div>
+          <button onclick="run_bootloader()" class="button is-primary">Run bootloader</button>
+
+            </article>
+          </template>
+
+          <template v-if="bootloader_called">
+            <article class="message is-success">
+              <div class="message-header">
+                <p>DEVICE IS IN BOOTLOADER MODE</p>
+              </div>
+              <div class="message-body">
+                <p>Please press 'Reflash' button to continue</p>
+              </div>
+          <button onclick="update()" class="button is-primary" v-if="what_is_it">Reflash {{what_is_it}}</button>
+
             </article>
           </template>
 
@@ -135,8 +148,7 @@
             </article>
           </template>
 
-          <button onclick="update()" class="button is-primary" v-if="is_solo_secure">Reflash Solo Secure</button>
-          <button onclick="update()" class="button is-primary" v-if="is_solo_hacker">Reflash Solo Hacker</button>
+          <button onclick="update()" class="button is-primary" v-if="what_is_it">Reflash {{what_is_it}}</button>
           <p>
             <span v-if="update_status" v-text="update_status"></span>
             <br>
@@ -155,6 +167,17 @@
             </article>
           </template>
 
+          <template v-if="update_failure">
+            <article class="message is-warning">
+              <div class="message-header">
+                <p>UPDATE FAILED</p>
+              </div>
+              <div class="message-body">
+                The update process has been interrupted. Please run the update once again, and do not tab out during the process.
+              </div>
+            </article>
+          </template>
+
         </div>
       </template>
 
@@ -164,7 +187,7 @@
             <p>SITE FIRMWARE OUT OF DATE!</p>
           </div>
           <div class="message-body">
-            <p>Please inform SoloKeys!</p>
+            <p>Please inform Nitrokey!</p>
             <p>Firmware flashing deactivated.</p>
           </div>
         </article>
@@ -173,24 +196,35 @@
     </section>
     <section class="section">
       <div class="container">
-        <a href="https://github.com/solokeys/solo-webupdate" target="_blank"><img src="images/github.png" height=32 width=32>github.com/solokeys/solo-webupdate</a>
+        <a href="https://github.com/Nitrokey/nitrokey-webupdate"><img src="images/github.png" height=32 width=32>github.com/Nitrokey/nitrokey-webupdate</a>
       </div>
     </section>
     <section class="section">
       <div class="container">
         <button onclick="toggle_advanced_mode()" class="button is-light">Advanced Mode (DANGER ZONE!)</button>
         <template v-if="advanced_mode">
-          <br>
-          <br>
-          <button onclick="update_secure()" class="button is-primary">I CONFIRM: Solo Secure plugged in - reflash it</button>
-          <br>
-          <br>
-          <button onclick="update_hacker()" class="button is-primary">I CONFIRM: Solo Hacker plugged in - reflash it</button>
+
+          <br><br>
+
+          <select v-model="user_selected_device">
+          <option disabled value="">Please select device</option>
+          <option
+            v-for="(option, index) in supported_devices"
+            :key="index"
+            :value="option" >
+            {{ option }}
+          </option>
+        </select>
+
+          <br><br>
+          <button onclick="update_secure()" class="button is-primary" v-if="user_selected_device">I CONFIRM: {{user_selected_device}} plugged in - reflash it</button>
+
+
         </template>
       </div>
     </section>
   </div>
-</body
+</body>
 
 <!-- development version, includes helpful console warnings -->
 <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>

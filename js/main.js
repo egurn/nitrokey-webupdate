@@ -3,6 +3,7 @@ var app = new Vue({
   data: {
     platform_description: '',
     webauthn_support: '',
+    what_is_it: '',
     solo_version_parts: null,
     solo_version: null,
     stable_version_parts: null,
@@ -18,17 +19,23 @@ var app = new Vue({
     advanced_mode: false,
     cannot_inspect: null,
     cannot_flash: null,
+    bootloader_called: null,
     update_success: null,
+    update_failure: null,
     about_to_flash: null,
     p_progress: null,
     is_linux: null,
+    user_selected_device: '',
+    supported_devices: supported_devices,
   }
 });
 
 async function reset_messages() {
   app.cannot_inspect = null;
   app.cannot_flash = null;
+  app.bootloader_called = null;
   app.update_success = null;
+  app.update_failure = null;
   app.update_progress = null;
   app.ask_for_attestation = null;
 }
@@ -47,6 +54,23 @@ async function inspect_browser() {
   if (platform.os["family"] == "Linux") {
     app.is_linux = true;
   }
+}
+
+async function run_bootloader(){
+
+  await ctaphid_via_webauthn(
+    CMD.solo_bootloader, null, null, 1000
+  ).then(response => {
+    console.log("bootloader RESPONSE", response);
+    // FIXME handle failure in call
+    app.cannot_flash = null;
+    app.bootloader_called = true;
+  }
+  )
+  .catch(error => {
+    console.log(error);
+  });
+
 }
 
 async function check_version(){
@@ -75,7 +99,7 @@ async function check_version(){
 
 async function fetch_stable_version() {
   var response = await fetch(
-    "https://raw.githubusercontent.com/solokeys/solo/master/STABLE_VERSION",
+    "https://raw.githubusercontent.com/Nitrokey/nitrokey-fido2-firmware/master/STABLE_VERSION",
     {cache: "no-store"}
   );
   let stable_version_github = (await response.text()).trim();
@@ -115,7 +139,7 @@ async function create_direct_attestation(timeout) {
     // GOAL: register a key signed by key's attestation certificate
     let publicKeyCredentialCreationOptions = {
 		rp: {
-			name: 'SoloKeys Service Station',
+			name: 'Nitrokey Web Update',
 			id: rp_id,
 		},
     authenticatorSelection: {
@@ -131,8 +155,8 @@ async function create_direct_attestation(timeout) {
 
 		user: {
 			id: new Uint8Array([0, 1, 2, 3, 4, 5, 6, 7]),
-			name: "little-solo-keys@solokeys.com",
-			displayName: "Lil' Solo Keys",
+			name: "test-email@nitrokey.com",
+			displayName: "Nitrokey test user",
 		},
 
 		timeout: timeout,
@@ -149,13 +173,11 @@ async function inspect() {
   app.is_solo_secure = null;
   app.is_solo_hacker = null;
   console.log("app.solo_version", app.solo_version);
-  if (app.solo_version != "unknown" && !(app.solo_version == null)) {
     console.log("PRE-CHECKING IF IN BOOTLOADER");
     if (await is_bootloader()) {
       app.cannot_inspect = true;
       return;
     }
-  }
   console.log("ASKING FOR ATTESTATION");
   app.ask_for_attestation = true;
   let credential = await create_direct_attestation();
@@ -168,18 +190,12 @@ async function inspect() {
   var certificate = attestation.attStmt.x5c[0];
   let certificate_fingerprint = sha256(certificate);
   let what_is_it = known_certs_lookup[certificate_fingerprint];
+  app.what_is_it = what_is_it;
 
   if (typeof what_is_it === "undefined") {
-    console.log("UNKNOWN ATTESTATION CERTIFIATE");
+    console.log("UNKNOWN ATTESTATION CERTIFIATE", certificate_fingerprint);
   } else {
-    if (what_is_it == "Solo Secure") {
       app.is_solo_secure = true;
-      app.is_solo_hacker = false;
-    }
-    if (what_is_it == "Solo Hacker") {
-      app.is_solo_secure = false;
-      app.is_solo_hacker = true;
-    }
   };
 
   // now we know a key is plugged in
@@ -202,8 +218,8 @@ async function inspect() {
 async function fetch_firmware() {
   // TODO: cache downloads
   url_base = "data/";
-  if (app.is_solo_secure) {
-    let file_url = url_base + "firmware-secure-" + app.stable_version + ".json";
+    let fname = firmware_file_name[app.what_is_it]
+    let file_url = url_base + fname + app.stable_version + ".json";
     console.log(file_url);
 
     let fetched = await fetch(file_url);
@@ -216,22 +232,14 @@ async function fetch_firmware() {
       firmware: firmware,
       signature: signature,
     }
-  }
 
-  if (app.is_solo_hacker) {
-    let file_url = url_base + "firmware-hacker-" + app.stable_version + ".hex";
-    console.log(file_url);
-    let fetched = await fetch(file_url);
-    let firmware = await fetched.text();
-
-    return {
-      firmware: firmware,
-      signature: null,
-    }
-  }
 }
 
 async function is_bootloader() {
+  let responsep = await ctaphid_via_webauthn(CMD.boot_pubkey, null, null, 1000);
+  console.log("Boot pubkey", responsep);
+  let responsev = await ctaphid_via_webauthn(CMD.boot_version, null, null, 1000);
+  console.log("Boot version", responsev);
   let response = await ctaphid_via_webauthn(CMD.boot_check, null, null, 1000);
   // console.log(response);
   let _is_bootloader = !(response == null);
@@ -240,11 +248,7 @@ async function is_bootloader() {
 }
 
 async function update_hacker() {
-  app.is_solo_hacker = true;
-  app.is_solo_secure = false;
-  await reset_messages();
-  await toggle_advanced_mode();
-  await update();
+  await update_secure();
 }
 
 async function update_secure() {
@@ -257,10 +261,16 @@ async function update_secure() {
 
 async function update() {
   await reset_messages();
+
+  if (app.user_selected_device){
+    app.what_is_it = app.user_selected_device;
+  }
+
   if (!await is_bootloader()) {
     app.cannot_flash = true;
     return
   }
+
   app.update_status = "DOWNLOADING FIRMWARE";
   let signed_firmware = await fetch_firmware();
   app.signed_firmware = signed_firmware;
@@ -289,6 +299,13 @@ async function update() {
               addr.value + i,
               chunk
           );
+          if (typeof p === "undefined") {
+              console.log("...FAILURE");
+              app.update_failure = true;
+              app.update_status = "FLASHING FIRMWARE FAILED";
+              return;
+          }
+
           TEST(p.status != 'CTAP1_SUCCESS', 'Device wrote data');
 
           var progress = (((i/data.length) * 100 * 100) | 0)/100;

@@ -1,8 +1,17 @@
 const known_certs_hashed = {
-	"Solo Secure": "8e06b4060fc58677055285ce3ee6a69a0666b59f4c2a0a00a025c7f0f3ce9a50",
-	"Solo Hacker": "2a0a22ceaedac89b3d02e2b53cbfaa763c6efa8a73f03976ec72fe4c5d9a1ff3",
-	"U2F Zero":    "ded15e86dae60b48f7507bc81d7471b61102c2eb844bd954b653164d8c0cb677",
+	"Nitrokey FIDO2":             "8e06b4060fc58677055285ce3ee6a69a0666b59f4c2a0a00a025c7f0f3ce9a50",
+	"Nitrokey FIDO2 Development": "2a0a22ceaedac89b3d02e2b53cbfaa763c6efa8a73f03976ec72fe4c5d9a1ff3",
+	"Nitrokey FIDO2 Development 2": "2a0a22ceaedac89b3d02e2b53cbfaa763c6efa8a73f03976ec72fe4c5d9a1ff3",
 };
+const firmware_file_name = {
+	"Nitrokey FIDO2":             "fido2-firmware-",
+	"Nitrokey FIDO2 Development": "fido2-firmware-dev-",
+	"Nitrokey FIDO2 Development 2": "fido2-firmware-dev-",
+	"Nitrokey FIDO2 Development 3": "fido2-firmware-dev-",
+	"Nitrokey FIDO2 Development 4": "fido2-firmware-dev-",
+};
+
+const supported_devices = Object.keys(firmware_file_name);
 
 // invert known_certs_hashed
 const known_certs_lookup = Object.assign(
@@ -20,17 +29,20 @@ const CMD = {
     solo_version: 0x14,
     solo_rng: 0x15,
     solo_pubkey: 0x16,
+    solo_bootloader: 0x20,
 
     boot_write: 0x40,   // 64
     boot_done: 0x41,    // 65
     boot_check: 0x42,   // 66
     boot_erase: 0x43,   // 67
     boot_version: 0x44, // 68
+    boot_pubkey: 0x48,
 };
 
 const command_codes = {
 	0x14: "SOLO VERSION",
 	0x15: "SOLO RNG",
+	0x20: "SOLO BOOTLOADER",
 
 	0x40: "BOOT WRITE",
 	0x41: "BOOT DONE",
