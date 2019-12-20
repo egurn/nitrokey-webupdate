@@ -36,7 +36,7 @@ const CMD = {
     boot_check: 0x42,   // 66
     boot_erase: 0x43,   // 67
     boot_version: 0x44, // 68
-    boot_pubkey: 0x48,
+    boot_pubkey: 0x48,  // 72
 };
 
 const command_codes = {
@@ -48,7 +48,8 @@ const command_codes = {
 	0x41: "BOOT DONE",
 	0x42: "BOOT CHECK",
 	0x43: "BOOT ERASE",
-	0x44: "BOOT VERSION",
+  0x44: "BOOT VERSION",
+  0x48: "BOOT PUBKEY",
 };
 
 const ctap_error_codes = {
