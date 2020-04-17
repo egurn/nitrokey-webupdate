@@ -125,7 +125,7 @@ async function fetch_stable_version() {
 async function prepare() {
   await inspect_browser();
   await fetch_stable_version();
-  await check_version();
+  // await check_version();
 }
 
 async function create_direct_attestation(timeout) {
