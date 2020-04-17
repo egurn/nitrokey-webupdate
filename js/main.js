@@ -284,7 +284,7 @@ async function update() {
   let addresses = blocks.keys();
 
   let addr = addresses.next();
-  let chunk_size = 240;
+  let chunk_size = CONST_chunk_size;
   console.log("WRITING...");
   app.update_status = "FLASHING FIRMWARE";
 

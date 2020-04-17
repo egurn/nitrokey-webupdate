@@ -99,3 +99,4 @@ const ctap_error_codes = {
     0x39: 'CTAP2_ERR_REQUEST_TOO_LARGE',
 }
 
+const CONST_chunk_size = 240;
