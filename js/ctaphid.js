@@ -111,8 +111,8 @@ function decode_ctaphid_response_from_signature(response) {
 
     signature = new Uint8Array(response.signature);
     data = null;
-    error_code = signature[0];
-    if (error_code == 0) {
+    let error_code = signature[0];
+    if (error_code === 0) {
         data = signature.slice(1, signature.length);
 
     }

@@ -112,7 +112,7 @@ async function fetch_stable_version() {
   let stable_version_fetched = (await response.text()).trim();
   console.log("STABLE_VERSION FETCHED", stable_version_fetched);
 
-  if (stable_version_github != stable_version_fetched) {
+  if (stable_version_github !== stable_version_fetched) {
     app.stable_version = "fetched firmware out of date";
     app.correct_firmware = false;
   } else {
@@ -242,7 +242,7 @@ async function is_bootloader() {
   console.log("Boot version", responsev);
   let response = await ctaphid_via_webauthn(CMD.boot_check, null, null, 1000);
   // console.log(response);
-  let _is_bootloader = !(response == null);
+  let _is_bootloader = (response && response.data);
   // console.log(is_bootloader);
   return _is_bootloader;
 }
@@ -306,7 +306,7 @@ async function update() {
               return;
           }
 
-          TEST(p.status != 'CTAP1_SUCCESS', 'Device wrote data');
+          TEST(p.status !== 'CTAP1_SUCCESS', 'Device wrote data');
 
           var progress = (((i/data.length) * 100 * 100) | 0)/100;
           console.log("PROGRESS:", progress);
