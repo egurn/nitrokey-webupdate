@@ -17,6 +17,7 @@ var app = new Vue({
     update_status: null,
     update_progress: null,
     advanced_mode: false,
+    show_advanced_mode: false,
     cannot_inspect: null,
     cannot_flash: null,
     bootloader_called: null,
@@ -27,6 +28,18 @@ var app = new Vue({
     is_linux: null,
     user_selected_device: '',
     supported_devices: supported_devices,
+    update_ongoing: false,
+    reply_wait: 0,
+    cancel_animation: true,
+    app_step: const_app_steps.not_set,
+    const_app_steps: const_app_steps,
+    bootloader_version: '',
+    bootloader_pubkey: '',
+    device_state: const_device_state.not_set,
+    const_device_state: const_device_state,
+    const_app_steps_strings: const_app_steps_strings,
+    solo_version_str: '',
+    bootloader_execution_attempt: 0,
   }
 });
 
@@ -38,7 +51,15 @@ async function reset_messages() {
   app.update_failure = null;
   app.update_progress = null;
   app.ask_for_attestation = null;
+  app.update_ongoing = false;
 }
+
+async function sleep(delay) {
+  return new Promise(function (resolve) {
+    setTimeout(resolve, delay);
+  });
+}
+
 
 async function toggle_advanced_mode() {
   app.advanced_mode = !app.advanced_mode;
@@ -47,54 +68,74 @@ async function toggle_advanced_mode() {
 async function inspect_browser() {
   app.platform_description = platform.description;
   if (!window.PublicKeyCredential) {
-    app.webauthn_support = "Your browser does not support WebAuthn, please use another one";
+    app.webauthn_support = "(unsupported; your browser does not support WebAuthn, please use another one)";
   } else {
-    app.webauthn_support = "Your browser supports WebAuthn";
+    app.webauthn_support = "(WebAuthn supported)";
   }
-  if (platform.os["family"] == "Linux") {
+  if (platform.os["family"] === "Linux") {
     app.is_linux = true;
   }
 }
 
-async function run_bootloader(){
+async function run_bootloader() {
 
   await ctaphid_via_webauthn(
     CMD.solo_bootloader, null, null, 1000
   ).then(response => {
-    console.log("bootloader RESPONSE", response);
-    // FIXME handle failure in call
-    app.cannot_flash = null;
-    app.bootloader_called = true;
-  }
+      console.log("bootloader RESPONSE", response);
+      // FIXME handle failure in call
+      app.cannot_flash = null;
+      app.bootloader_called = true;
+      app.app_step = const_app_steps.bootloader_executed;
+    }
   )
-  .catch(error => {
-    console.log(error);
-  });
+    .catch(error => {
+      console.log(error);
+    });
 
 }
 
-async function check_version(){
+async function exit_bootloader() {
+  let signed_firmware = await fetch_firmware();
+  let signature = signed_firmware.signature;
+
+  await ctaphid_via_webauthn(
+    CMD.boot_done, 0x8000, signature
+  ).then(response => {
+      console.log("bootloader RESPONSE", response);
+      app.bootloader_called = false;
+      app.app_step = const_app_steps.not_set;
+    }
+  )
+    .catch(error => {
+      console.log(error);
+    });
+}
+
+async function check_version() {
   await ctaphid_via_webauthn(
     // option a) timeout --> leads to ugly persistent popup in chrome (firefox is better)
     CMD.solo_version, null, null, 1000
     // option b) no timeout --> user needs to click cancel
     // CMD.solo_version,
   ).then(response => {
-    console.log("check-version RESPONSE", response);
-    if (typeof response !== "undefined") {
-      app.solo_version_parts = response.slice(0, 3);
-      let solo_version = response[0] + '.' + response[1] + '.' + response[2];
-      app.solo_version = solo_version;
-    } else {
-      // we assume this is a pre-1.1.0 solo
-      app.solo_version_parts = new Uint8Array([0, 0, 0]);
-      app.solo_version = "unknown";
+      console.log("check-version RESPONSE", response);
+      if (response && typeof response !== "undefined") {
+        app.solo_version_parts = response.slice(0, 3);
+        app.solo_version = response[0] + '.' + response[1] + '.' + response[2];
+        app.solo_version_str = '';
+        app.device_state = const_device_state.normal_mode;
+        app.is_solo_secure = true;
+      } else {
+        // we assume this is a pre-1.1.0 solo
+        app.solo_version_parts = new Uint8Array([0, 0, 0]);
+        app.solo_version = "unknown";
+      }
     }
-  }
   )
-  .catch(error => {
-    console.log(error);
-  });
+    .catch(error => {
+      console.log(error);
+    });
 }
 
 async function fetch_stable_version() {
@@ -113,7 +154,7 @@ async function fetch_stable_version() {
   console.log("STABLE_VERSION FETCHED", stable_version_fetched);
 
   if (stable_version_github !== stable_version_fetched) {
-    app.stable_version = "fetched firmware out of date";
+    app.stable_version = "fetched firmware version mismatch: update app has " + stable_version_fetched + ', but latest is: ' + stable_version_github;
     app.correct_firmware = false;
   } else {
     app.stable_version = stable_version_fetched;
@@ -129,121 +170,180 @@ async function prepare() {
 }
 
 async function create_direct_attestation(timeout) {
-    // random nonce
-    var challenge = new Uint8Array(32);
-    window.crypto.getRandomValues(challenge);
+  // random nonce
+  var challenge = new Uint8Array(32);
+  window.crypto.getRandomValues(challenge);
 
-    // our relying party
-    let rp_id = window.location.hostname;
+  // our relying party
+  let rp_id = window.location.hostname;
 
-    // GOAL: register a key signed by key's attestation certificate
-    let publicKeyCredentialCreationOptions = {
-		rp: {
-			name: 'Nitrokey Web Update',
-			id: rp_id,
-		},
+  // GOAL: register a key signed by key's attestation certificate
+  let publicKeyCredentialCreationOptions = {
+    rp: {
+      name: 'Nitrokey Web Update',
+      id: rp_id,
+    },
     authenticatorSelection: {
       userVerification: 'discouraged',
     },
-		attestation: 'direct',
+    attestation: 'direct',
 
-		challenge,
+    challenge,
 
-		pubKeyCredParams: [
-			{ type: 'public-key', alg: -7 },
-		],
+    pubKeyCredParams: [
+      {type: 'public-key', alg: -7},
+    ],
 
-		user: {
-			id: new Uint8Array([0, 1, 2, 3, 4, 5, 6, 7]),
-			name: "test-email@nitrokey.com",
-			displayName: "Nitrokey test user",
-		},
+    user: {
+      id: new Uint8Array([0, 1, 2, 3, 4, 5, 6, 7]),
+      name: "test-email@nitrokey.com",
+      displayName: "Nitrokey test user",
+    },
 
-		timeout: timeout,
-		excludeCredentials: [],
-	};
+    timeout: timeout,
+    excludeCredentials: [],
+  };
 
-	return navigator.credentials.create({
-		publicKey: publicKeyCredentialCreationOptions
-	});
-};
+  return navigator.credentials.create({
+    publicKey: publicKeyCredentialCreationOptions
+  });
+}
+
+async function run_animation(time_seconds) {
+  app.cancel_animation = false;
+  const update_ms = 500;
+  const total_time_ms = time_seconds * 1000;
+  const iterations = total_time_ms / update_ms;
+  const idelay = total_time_ms / iterations;
+  for (let i = 0; i <= iterations; i++) {
+    app.reply_wait = i / iterations * 100;
+    await sleep(idelay);
+    if (app.cancel_animation) {
+      app.reply_wait = 0;
+      break;
+    }
+  }
+}
 
 async function inspect() {
   await reset_messages();
+  app.app_step = const_app_steps.inspect;
+  app.ask_for_attestation = true;
   app.is_solo_secure = null;
   app.is_solo_hacker = null;
   console.log("app.solo_version", app.solo_version);
-    console.log("PRE-CHECKING IF IN BOOTLOADER");
+  console.log("PRE-CHECKING IF IN BOOTLOADER");
+
+  app.what_is_it = default_device; //set default device
+  // await sleep(500);
+  app.app_step = const_app_steps.bootloader_check;
+  try {
+    run_animation(15);
     if (await is_bootloader()) {
+      app.app_step = const_app_steps.after_inspection;
+      app.ask_for_attestation = null;
       app.cannot_inspect = true;
+      app.cancel_animation = true;
       return;
     }
-  console.log("ASKING FOR ATTESTATION");
-  app.ask_for_attestation = true;
-  let credential = await create_direct_attestation();
-  app.ask_for_attestation = null;
-
-  let utf8_decoder = new TextDecoder('utf-8');
-  let client_data_json = utf8_decoder.decode(credential.response.clientDataJSON);
-  let client_data = JSON.parse(client_data_json);
-  var attestation = CBOR.decode(credential.response.attestationObject);
-  var certificate = attestation.attStmt.x5c[0];
-  let certificate_fingerprint = sha256(certificate);
-  let what_is_it = known_certs_lookup[certificate_fingerprint];
-  app.what_is_it = what_is_it;
-
-  if (typeof what_is_it === "undefined") {
-    console.log("UNKNOWN ATTESTATION CERTIFIATE", certificate_fingerprint);
-  } else {
-      app.is_solo_secure = true;
-  };
-
-  // now we know a key is plugged in
-  if (app.solo_version != "1.0.0") {
-    await check_version();
+    //
+    // console.log("ASKING FOR ATTESTATION");
+    // const credential = await create_direct_attestation();
+    // app.ask_for_attestation = null;
+    //
+    // // let utf8_decoder = new TextDecoder('utf-8');
+    // // const client_data_json = utf8_decoder.decode(credential.response.clientDataJSON);
+    // // let client_data = JSON.parse(client_data_json);
+    // const attestation = CBOR.decode(credential.response.attestationObject);
+    // const certificate = attestation.attStmt.x5c[0];
+    // const certificate_fingerprint = sha256(certificate);
+    // what_is_it = known_certs_lookup[certificate_fingerprint];
+    // app.what_is_it = what_is_it;
+  } catch (e) {
+    app.app_step = const_app_steps.communication_error;
+    app.ask_for_attestation = null;
+    console.log("Failed running inspection");
+    // app.cannot_inspect = true;
+    app.cancel_animation = true;
+    return;
   }
 
-  let need = app.stable_version_parts;
-  let have = app.solo_version_parts;
+  if (typeof what_is_it === "undefined") {
+    // console.log("UNKNOWN ATTESTATION CERTIFIATE", certificate_fingerprint);
+  } else {
+    app.is_solo_secure = true;
+  }
+
+  // now we know a key is plugged in
+  await check_version();
+  app.cancel_animation = true;
+
+  const need = app.stable_version_parts;
+  const have = app.solo_version_parts;
   console.log("NEED", need);
   console.log("HAVE", have);
 
   if (have == null) {
     app.needs_update = true;
   } else {
-    app.needs_update = (need[0] > have[0]) || (need[1] > have[1]) || (need[2] > have[2]);
+    app.needs_update =
+      (need[0] > have[0])
+      || (need[0] === have[0] && need[1] > have[1])
+      || (need[0] === have[0] && need[1] === have[1] && need[2] > have[2])
+    ;
   }
+  app.app_step = const_app_steps.after_inspection;
 }
 
 async function fetch_firmware() {
   // TODO: cache downloads
   url_base = "data/";
-    let fname = firmware_file_name[app.what_is_it]
-    let file_url = url_base + fname + app.stable_version + ".json";
-    console.log(file_url);
+  let fname = firmware_file_name[app.what_is_it]
+  let file_url = url_base + fname + app.stable_version + ".json";
+  console.log(file_url);
 
-    let fetched = await fetch(file_url);
-    let content = await fetched.json();
+  let fetched = await fetch(file_url);
+  let content = await fetched.json();
 
-    let firmware = websafe2string(content.firmware);
-    var signature = websafe2array(content.signature);
+  let firmware = websafe2string(content.firmware);
+  var signature = websafe2array(content.signature);
 
-    return {
-      firmware: firmware,
-      signature: signature,
-    }
+  return {
+    firmware: firmware,
+    signature: signature,
+  }
 
 }
 
+
 async function is_bootloader() {
-  let responsep = await ctaphid_via_webauthn(CMD.boot_pubkey, null, null, 1000);
-  console.log("Boot pubkey", responsep);
-  let responsev = await ctaphid_via_webauthn(CMD.boot_version, null, null, 1000);
-  console.log("Boot version", responsev);
-  let response = await ctaphid_via_webauthn(CMD.boot_check, null, null, 1000);
-  // console.log(response);
-  let _is_bootloader = (response && response.data);
-  // console.log(is_bootloader);
+  app.device_state = const_device_state.not_set;
+
+  const response = await ctaphid_via_webauthn(CMD.boot_check, null, null, 1000);
+  console.log("Boot check", response);
+  if (response === undefined) {
+    app.device_state = const_device_state.not_available;
+    throw "Device not available";
+  }
+
+  const _is_bootloader = (response !== null);
+  console.log("IS BOOTLOADER", _is_bootloader);
+  if (_is_bootloader) {
+    app.device_state = const_device_state.bootloader;
+    const boot_pubkey = await ctaphid_via_webauthn(CMD.boot_pubkey, null, null, 1000);
+    console.log("Boot pubkey", boot_pubkey);
+    app.bootloader_pubkey = sha256(boot_pubkey);
+    const device_name = known_pubkey_lookup[app.bootloader_pubkey];
+    const boot_version = await ctaphid_via_webauthn(CMD.boot_version, null, null, 1000);
+    console.log("Boot version", boot_version);
+    // const boot_version_s = new TextDecoder("utf-8").decode(boot_version);
+    // app.bootloader_version = boot_version_s;
+    app.bootloader_version = boot_version;
+    // app.what_is_it = device_name + ' (bootloader mode, version: ' + app.bootloader_version.slice(0,3) + ' )';
+    app.what_is_it = device_name;
+  } else {
+    app.device_state = const_device_state.normal_mode;
+  }
   return _is_bootloader;
 }
 
@@ -254,22 +354,53 @@ async function update_hacker() {
 async function update_secure() {
   app.is_solo_hacker = false;
   app.is_solo_secure = true;
-  await reset_messages();
-  await toggle_advanced_mode();
+  app.advanced_mode = false;
   await update();
 }
 
+function update_failure() {
+  console.log("...FAILURE");
+  app.update_failure = true;
+  app.update_status = "FLASHING FIRMWARE FAILED";
+  app.app_step = const_app_steps.update_failure;
+  app.update_ongoing = false;
+}
+
 async function update() {
+  app.after_update_firmware_version = '';
   await reset_messages();
 
-  if (app.user_selected_device){
+  if (app.user_selected_device) {
     app.what_is_it = app.user_selected_device;
   }
 
-  if (!await is_bootloader()) {
-    app.cannot_flash = true;
-    return
+  let bootloader_exec_success = false;
+  app.app_step = const_app_steps.bootloader_execution_start;
+  for (let i = 0; i < 5; i++) {
+    app.bootloader_execution_attempt = i + 1;
+    run_animation(15);
+    try {
+      sleep(50);
+      if (!await is_bootloader()) {
+        sleep(50);
+        // ask for running the bootloader
+        await run_bootloader();
+      } else {
+        bootloader_exec_success = true;
+        break;
+      }
+    } catch (e) {
+    }
   }
+  app.cancel_animation = true;
+
+  if (!bootloader_exec_success) {
+    app.app_step = const_app_steps.update_failure;
+    return;
+  }
+
+  app.update_ongoing = true;
+  // app.needs_update = false;
 
   app.update_status = "DOWNLOADING FIRMWARE";
   let signed_firmware = await fetch_firmware();
@@ -285,35 +416,37 @@ async function update() {
   let chunk_size = CONST_chunk_size;
   console.log("WRITING...");
   app.update_status = "FLASHING FIRMWARE";
+  app.app_step = const_app_steps.update_ongoing;
 
-  while(!addr.done) {
-      const data = blocks.get(addr.value);
-      for (let i = 0; i < data.length; i += chunk_size) {
-          const chunk = data.slice(i,i+chunk_size);
+  while (!addr.done) {
+    const data = blocks.get(addr.value);
+    for (let i = 0; i < data.length; i += chunk_size) {
+      await sleep(20);
+      const chunk = data.slice(i, i + chunk_size);
 
-          const p = await ctaphid_via_webauthn(
-              CMD.boot_write,
-              addr.value + i,
-              chunk
-          );
-          if (typeof p === "undefined") {
-              console.log("...FAILURE");
-              app.update_failure = true;
-              app.update_status = "FLASHING FIRMWARE FAILED";
-              return;
-          }
-
-          TEST(p.status !== 'CTAP1_SUCCESS', 'Device wrote data');
-
-          const progress = (((i / data.length) * 100 * 100) | 0) / 100;
-          console.log("PROGRESS:", progress);
-          app.p_progress = Math.round(progress);
-          app.update_progress = "Progress: " + progress + "%";
+      const p = await ctaphid_via_webauthn(
+        CMD.boot_write,
+        addr.value + i,
+        chunk
+      );
+      if (typeof p === "undefined" || p.status === 'CTAP1_SUCCESS') {
+        console.log("Failed reply: ", p);
+        update_failure();
+        return;
       }
+      // TEST(p.status !== 'CTAP1_SUCCESS', 'Device wrote data');
 
-      addr = addresses.next();
+      const progress = (((i / data.length) * 100 * 100) | 0) / 100;
+      if (i % 1000 === 0)
+        console.log("PROGRESS:", progress);
+      app.p_progress = Math.round(progress);
+      app.update_progress = "Progress: " + progress + "%";
+    }
+
+    addr = addresses.next();
   }
-  app.update_progress = "Progress: 100%";
+  // app.update_progress = "Progress: 100%";
+  app.update_progress = null;
   app.p_progress = null;
   console.log("...DONE");
 
@@ -323,7 +456,13 @@ async function update() {
   );
   app.update_status = null;
   app.update_success = true;
+  app.update_ongoing = false;
 
   app.signed_firmware = null;
   await check_version();
+  app.app_step = const_app_steps.update_success;
+}
+
+async function reload_page() {
+  location.reload();
 }

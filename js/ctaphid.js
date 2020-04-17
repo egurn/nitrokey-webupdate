@@ -1,4 +1,4 @@
-const V = true;
+const V = false;
 
 async function ctaphid_via_webauthn(cmd, addr, data, timeout) {
   // if a token does not support CTAP2, WebAuthn re-encodes as CTAP1/U2F:
