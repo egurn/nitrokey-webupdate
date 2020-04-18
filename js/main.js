@@ -278,8 +278,6 @@ async function update() {
   let firmware = signed_firmware.firmware;
   let signature = signed_firmware.signature;
 
-  let num_pages = 64;
-
   let blocks = MemoryMap.fromHex(firmware);
   let addresses = blocks.keys();
 
@@ -289,12 +287,11 @@ async function update() {
   app.update_status = "FLASHING FIRMWARE";
 
   while(!addr.done) {
-      var data = blocks.get(addr.value);
-      var i;
-      for (i = 0; i < data.length; i += chunk_size) {
-          var chunk = data.slice(i,i+chunk_size);
+      const data = blocks.get(addr.value);
+      for (let i = 0; i < data.length; i += chunk_size) {
+          const chunk = data.slice(i,i+chunk_size);
 
-          p = await ctaphid_via_webauthn(
+          const p = await ctaphid_via_webauthn(
               CMD.boot_write,
               addr.value + i,
               chunk
@@ -308,7 +305,7 @@ async function update() {
 
           TEST(p.status !== 'CTAP1_SUCCESS', 'Device wrote data');
 
-          var progress = (((i/data.length) * 100 * 100) | 0)/100;
+          const progress = (((i / data.length) * 100 * 100) | 0) / 100;
           console.log("PROGRESS:", progress);
           app.p_progress = Math.round(progress);
           app.update_progress = "Progress: " + progress + "%";
