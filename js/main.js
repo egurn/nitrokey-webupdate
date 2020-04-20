@@ -26,6 +26,7 @@ var app = new Vue({
     about_to_flash: null,
     p_progress: null,
     is_linux: null,
+    is_not_supported_configuration: null,
     user_selected_device: '',
     supported_devices: supported_devices,
     update_ongoing: false,
@@ -74,6 +75,9 @@ async function inspect_browser() {
   }
   if (platform.os["family"] === "Linux") {
     app.is_linux = true;
+  }
+  if (platform.name === "Chrome" && platform.os["family"] !== "Windows"){
+    app.is_not_supported_configuration = true;
   }
 }
 

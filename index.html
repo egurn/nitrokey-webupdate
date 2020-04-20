@@ -37,7 +37,7 @@
         Update application status: ({{app_step}}) {{const_app_steps_strings[app_step]}}
       </p>
 
-      <template v-if="app_step <= const_app_steps.inspect">
+      <template v-if="app_step <= const_app_steps.inspect && !is_not_supported_configuration">
         <div class="content">
           <p>To start the update process please:</p>
           <ol>
@@ -46,6 +46,17 @@
           </ol>
           <button class="button is-primary" onclick="inspect()">Inspect Key</button>
         </div>
+      </template>
+
+      <template v-if="is_not_supported_configuration">
+        <article class="message is-warning">
+          <div class="message-header">
+            <p>Unsupported OS/browser configuration</p>
+          </div>
+          <div class="message-body">
+            <p>This OS/browser configuration is not supported.</p>
+          </div>
+        </article>
       </template>
 
       <template v-if="ask_for_attestation && app_step < const_app_steps.after_inspection">
