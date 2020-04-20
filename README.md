@@ -1,6 +1,24 @@
-[![Netlify Status](https://api.netlify.com/api/v1/badges/cf747fa0-e4d2-4405-897c-47cc3affba8e/deploy-status)](https://app.netlify.com/sites/solokeys-webupdate/deploys)
+# Nitrokey Webupdate
 
-# solo-webupdate
+Firmware updates through web browser for Nitrokey FIDO2.
+
+## Supported configurations
+
+| Browser/OS   |     Windows      |  macOS | Linux   |
+|:---|:---:|:---:|:---:|
+| Firefox (75) | Yes | Yes | Yes (and FF77)  |
+| Chrome (81)|  Yes   |   No | No (and CH84)  |
+| Edge (18)|    Yes |    - |  - |
+| Safari (13.0.4, macOS 10.15.2)|  - |    Yes * |  - |
+| Chromium (80)|    -   |   - | No  |
+
+Notes:
+- Safari blinks whole screen on every Webauthn request, not recommended to use due to this UI issue (otherwise works);
+- Windows OS needs additional touch to run the bootloader due to doubled requests; additionally execution time is longer due to that;
+- Chrome is not working due to a bug in the bootloader, which should be fixed in the coming bootloader firmware updates.
+- Windows shows a monit asking user to try another device while switching to the bootloader. User has to be instrumented to not take any action on such message.
+- Update process could be interrupted on Firefox, when it does lose application focus (e.g. due to the Alt+Tab);
+This is not the case for Chrome based browsers (Chrome forces app focus, Edge continues regardless).
 
 ## What is this?
 While advanced users capable of using the command line can test if their keys are genuine, and update them via
