@@ -61,6 +61,9 @@ async function sleep(delay) {
   });
 }
 
+async function toggle_advanced_mode2() {
+  app.show_advanced_mode = !app.show_advanced_mode;
+}
 
 async function toggle_advanced_mode() {
   app.advanced_mode = !app.advanced_mode;
@@ -358,7 +361,7 @@ async function update_hacker() {
 async function update_secure() {
   app.is_solo_hacker = false;
   app.is_solo_secure = true;
-  app.advanced_mode = false;
+  // app.advanced_mode = false;
   await update();
 }
 
