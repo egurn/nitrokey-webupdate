@@ -133,10 +133,11 @@
                   Device will be asked to reboot to bootloader mode after user confirmation (LED will blink with multiple colors), and then new firmware will be
                   written to its memory.
                 </li>
-                <li>This operation is safe for the device and user data.</li>
-                <li>It takes about 1 minute.</li>
-                <li>If the update process will be interrupted, it has to be repeated until success, otherwise only bootloader will work.</li>
-                <li>During the operation multiple popups will be shown - this is expected.</li>
+              <li>Each time the device is blinking, please touch it briefly, and release the device. Then touch device until it stops blinking. Release and repeat if blinks again. </li>
+              <li>Please ignore the popups shown during the operation - this is expected.</li>
+              <li>Please ignore popup asking for trying another key, or key reinsertion.</li>
+              <li>This operation is safe for the device and user data. It takes about 10 minutes.</li>
+                <li>If the update process will be interrupted, it has to be repeated until success, otherwise device will stay in the bootloader mode on each connection.</li>
                 <li>Please do not change the application focus (e.g. with switching to another application or pressing Alt+Tab), or the update process will be canceled.</li>
               <li>Please press the "Update" button below to continue. </li>
               </ol>
@@ -202,9 +203,10 @@
               <p>Executing bootloader</p>
             </div>
             <div class="message-body">
-              <p>Please touch device to confirm reboot to bootloader.</p>
+              <p>Please ignore system message about trying another key! This popup is expected.</p>
+              <p>Please touch briefly, and release the device. Then touch device until it stops blinking. Release and repeat if blinks again. </p>
               <p>If either device or browser will stop responding, please reinsert the device to the USB slot.</p>
-              <p>To cancel update process, please remove the device from the USB slot and refresh this page.</p>
+              <p>To cancel the update process, please remove the device from the USB slot and refresh or close this page.</p>
             </div>
           </article>
           <button class="button is-primary" onclick="reload_page()">Stop</button>
@@ -217,7 +219,7 @@
             </div>
             <div class="message-body">
               <p>The update process has been interrupted. Please reinsert the device to the USB slot, run the update once again, and do not tab out during the process.
-                Device cannot be used until update is not finished successfully.</p>
+                Device cannot be used as FIDO2 token until update is not finished successfully.</p>
             </div>
             <button class="button is-primary" onclick="inspect()">Try again</button>
           </article>
@@ -255,9 +257,9 @@
               <p>DO NOT TAB OUT</p>
             </div>
             <div class="message-body">
-              During the firmware update, you will see flashing popups - this is normal.
-              <br>
-              Do NOT TAB OUT during the update, or it will abort.
+              During the firmware update, you will see flashing popups - please ignore them.
+              <br />
+              Do NOT change application focus (by "tabbing out") during the update, or it will abort.
             </div>
           </article>
         </template>
