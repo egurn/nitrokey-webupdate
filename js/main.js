@@ -380,12 +380,11 @@ async function update() {
   if (app.user_selected_device) {
     app.what_is_it = app.user_selected_device;
   }
-
+  run_animation(15*5);
   let bootloader_exec_success = false;
   app.app_step = const_app_steps.bootloader_execution_start;
   for (let i = 0; i < 5; i++) {
     app.bootloader_execution_attempt = i + 1;
-    run_animation(15);
     try {
       sleep(50);
       if (!await is_bootloader()) {
@@ -399,7 +398,6 @@ async function update() {
     } catch (e) {
     }
   }
-  app.cancel_animation = true;
 
   if (!bootloader_exec_success) {
     app.app_step = const_app_steps.update_failure;
@@ -424,11 +422,15 @@ async function update() {
   console.log("WRITING...");
   app.update_status = "FLASHING FIRMWARE";
   app.app_step = const_app_steps.update_ongoing;
+  app.p_progress = 0;
 
   while (!addr.done) {
     const data = blocks.get(addr.value);
     for (let i = 0; i < data.length; i += chunk_size) {
       await sleep(20);
+      if (!app.cancel_animation && i>0){
+        app.cancel_animation = true;
+      }
       const chunk = data.slice(i, i + chunk_size);
 
       const p = await ctaphid_via_webauthn(

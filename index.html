@@ -47,7 +47,7 @@
           </p>
 
           <div class="container">
-            <a href="https://github.com/Nitrokey/nitrokey-webupdate"><img height=32 src="images/github.png" width=32/>github.com/Nitrokey/nitrokey-webupdate</a>
+            <a href="https://github.com/Nitrokey/nitrokey-webupdate"><img height=32 src="images/github.png" width=32  alt=""/>github.com/Nitrokey/nitrokey-webupdate</a>
           </div>
           <button class="button is-light" onclick="toggle_advanced_mode2()">Advanced Mode</button>
 
@@ -108,7 +108,7 @@
         </article>
       </template>
 
-      <progress class="progress is-success is-large" max="100" v-bind:value="reply_wait" v-if="reply_wait">{{
+      <progress class="progress is-success is-large" max="100" v-bind:value="reply_wait" v-if="reply_wait && app_step < const_app_steps.bootloader_executed">{{
         reply_wait }}%
       </progress>
 
@@ -136,10 +136,10 @@
   </section>
 
 
-  <section class="section" v-if="app_step <= const_app_steps.after_inspection">
+  <section class="section">
     <div class="container">
       <template>
-        <div class="container" v-if="needs_update">
+        <div class="container" v-if="app_step <= const_app_steps.after_inspection && needs_update">
           <article class="message is-warning">
             <div class="message-header">
               Firmware is outdated
@@ -151,6 +151,8 @@
                 Update is recommended.
                 <br/>
                 <br/>
+              </p>
+
               <ol>
 <!--                <li>-->
 <!--                  Device will be asked to reboot to bootloader mode after user confirmation (LED will blink with-->
@@ -173,7 +175,6 @@
 <!--                </li>-->
                 <li>Please press the "Update" button below to continue.</li>
               </ol>
-              </p>
             </div>
             <br/>
             <button class="button is-primary" onclick="update_secure()" v-if="what_is_it">Update {{what_is_it}}</button>
@@ -181,7 +182,7 @@
         </div>
 
         <div class="container"
-             v-if="(is_solo_secure || is_solo_hacker) && !needs_update">
+             v-if="(is_solo_secure || is_solo_hacker) && app_step <= const_app_steps.after_inspection && !needs_update ">
           <article class="message is-info">
             <div class="message-header">
               Firmware is up-to-date
@@ -232,14 +233,18 @@
         <template v-if="app_step===const_app_steps.bootloader_execution_start">
           <article class="message is-warning">
             <div class="message-header">
-              <p>Executing bootloader</p>
+              <p>Executing bootloader - do not touch your computer</p>
             </div>
             <div class="message-body">
-              <p>Please ignore system message about trying another key! This popup is expected.</p>
-              <p>Please touch briefly the device. Then keep pressing touch button on the device until it stops blinking with white light. Release press and
-                repeat if blinks again. </p>
-              <p>If either device or browser will stop responding, please reinsert the device to the USB slot.</p>
+              <ol>
+                <li><strong>Do not touch your PC. Touch your device.</strong></li>
+              <li>Touch briefly the device. Then keep pressing touch button on the device until it stops blinking with white light. Release press and
+                repeat if blinks again. </li>
+                <li>Please ignore system message about trying another key! This popup is expected.</li>
+                <li>If either device or browser will stop responding, please reinsert the device to the USB slot.</li>
+              </ol>
             </div>
+
           </article>
           <button class="button is-primary" onclick="reload_page()">Stop</button>
 
@@ -258,20 +263,19 @@
           </article>
         </template>
 
-        <template v-if="cannot_flash">
-          <article class="message is-danger">
-            <div class="message-header">
-              <p>DEVICE IS NOT IN BOOTLOADER MODE</p>
-            </div>
-            <div class="message-body">
-              <p>Please press 'Run bootloader' button, and then try to flash again</p>
-            </div>
-            <button class="button is-primary" onclick="run_bootloader()">Run bootloader</button>
-          </article>
-        </template>
+<!--        <template v-if="cannot_flash">-->
+<!--          <article class="message is-danger">-->
+<!--            <div class="message-header">-->
+<!--              <p>DEVICE IS NOT IN BOOTLOADER MODE</p>-->
+<!--            </div>-->
+<!--            <div class="message-body">-->
+<!--              <p>Please press 'Run bootloader' button, and then try to flash again</p>-->
+<!--            </div>-->
+<!--            <button class="button is-primary" onclick="run_bootloader()">Run bootloader</button>-->
+<!--          </article>-->
+<!--        </template>-->
 
-        <!--
-        <template v-if="device_state===const_device_state.bootloader">
+        <template v-if="device_state===const_device_state.bootloader && app_step===const_app_steps.after_inspection">
           <article class="message is-success">
             <div class="message-header">
               <p>DEVICE IS IN BOOTLOADER MODE</p>
@@ -284,29 +288,32 @@
             </div>
           </article>
         </template>
--->
 
         <template v-if="update_ongoing || app_step === const_app_steps.update_ongoing">
           <article class="message is-warning">
             <div class="message-header">
-              <p>DO NOT TAB OUT</p>
+              <p>DO NOT TOUCH YOUR PC</p>
             </div>
             <div class="message-body">
               During the firmware update, you will see flashing popups - please ignore them.
               <br/>
-              Do NOT change application focus (by "tabbing out") during the update, or it will abort.
+              Do NOT change application focus (e.g. by "tabbing out") during the update, or it will abort.
             </div>
           </article>
+          <progress class="progress is-success is-large" max="100" v-bind:value="reply_wait" v-if="reply_wait">{{
+            reply_wait }}%
+          </progress>
         </template>
 
         <!--          <button onclick="update()" class="button is-primary" v-if="what_is_it">Reflash {{what_is_it}}</button>-->
-        <p>
-          <span v-if="update_status && update_ongoing" v-text="update_status"></span>
+        <p v-if="app_step===const_app_steps.update_ongoing">
+          <span v-if="update_status" v-text="update_status"></span>
           <br>
           <span v-if="update_progress" v-text="update_progress"></span>
-          <progress class="progress is-success is-large" max="100" v-bind:value="p_progress" v-if="p_progress">{{
+          <progress class="progress is-success is-large" max="100" v-bind:value="p_progress">{{
             p_progress }}%
           </progress>
+
         </p>
 
         <template v-if="update_success">
