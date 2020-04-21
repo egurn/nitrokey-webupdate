@@ -233,6 +233,15 @@ async function run_animation(time_seconds) {
 }
 
 async function inspect() {
+  try{
+    return await inspect_();
+  } catch (e) {
+    console.log(e);
+    app.app_step = const_app_steps.update_failure;
+  }
+}
+
+async function inspect_() {
   await reset_messages();
   app.app_step = const_app_steps.inspect;
   app.ask_for_attestation = true;
@@ -374,6 +383,15 @@ function update_failure() {
 }
 
 async function update() {
+  try{
+    return await update_();
+  } catch (e) {
+    console.log(e);
+    app.app_step = const_app_steps.update_failure;
+  }
+}
+
+async function update_() {
   app.after_update_firmware_version = '';
   await reset_messages();
 
