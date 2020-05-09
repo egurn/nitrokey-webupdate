@@ -216,6 +216,11 @@ async function create_direct_attestation(timeout) {
   });
 }
 
+async function cancel_animation() {
+  app.cancel_animation = true;
+  app.reply_wait = 0;
+}
+
 async function run_animation(time_seconds) {
   app.cancel_animation = false;
   const update_ms = 500;
@@ -398,7 +403,7 @@ async function update_() {
   if (app.user_selected_device) {
     app.what_is_it = app.user_selected_device;
   }
-  run_animation(15*5);
+  run_animation(15*5*2);
   let bootloader_exec_success = false;
   app.app_step = const_app_steps.bootloader_execution_start;
   for (let i = 0; i < 5; i++) {
@@ -438,7 +443,7 @@ async function update_() {
   let addr = addresses.next();
   let chunk_size = CONST_chunk_size;
   console.log("WRITING...");
-  app.update_status = "FLASHING FIRMWARE";
+  app.update_status = "Update is running";
   app.app_step = const_app_steps.update_ongoing;
   app.p_progress = 0;
 
@@ -447,7 +452,7 @@ async function update_() {
     for (let i = 0; i < data.length; i += chunk_size) {
       await sleep(20);
       if (!app.cancel_animation && i>0){
-        app.cancel_animation = true;
+        cancel_animation();
       }
       const chunk = data.slice(i, i + chunk_size);
 
