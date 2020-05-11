@@ -1,14 +1,19 @@
+
+const default_device = "Nitrokey FIDO2";
+
 const known_certs_hashed = {
 	"Nitrokey FIDO2":             "8e06b4060fc58677055285ce3ee6a69a0666b59f4c2a0a00a025c7f0f3ce9a50",
-	"Nitrokey FIDO2 Development": "2a0a22ceaedac89b3d02e2b53cbfaa763c6efa8a73f03976ec72fe4c5d9a1ff3",
-	"Nitrokey FIDO2 Development 2": "2a0a22ceaedac89b3d02e2b53cbfaa763c6efa8a73f03976ec72fe4c5d9a1ff3",
+	"Nitrokey FIDO2 Development": "6c081e7b6d16010fac8aa14ac46f8132138843cc2d1f3ff0b29ccc6d6ff9aa0d",
 };
+
+const known_pubkey_hashed = {
+	"Nitrokey FIDO2":             "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx0",
+	"Nitrokey FIDO2 Development": "f835275e39519a8305c629ce065f47a8b9577663bf5c57876f2cc76d03bbc078",
+};
+
 const firmware_file_name = {
 	"Nitrokey FIDO2":             "fido2-firmware-",
 	"Nitrokey FIDO2 Development": "fido2-firmware-dev-",
-	"Nitrokey FIDO2 Development 2": "fido2-firmware-dev-",
-	"Nitrokey FIDO2 Development 3": "fido2-firmware-dev-",
-	"Nitrokey FIDO2 Development 4": "fido2-firmware-dev-",
 };
 
 const supported_devices = Object.keys(firmware_file_name);
@@ -17,6 +22,13 @@ const supported_devices = Object.keys(firmware_file_name);
 const known_certs_lookup = Object.assign(
 	{},
 	...Object.entries(known_certs_hashed).map(
+		([a, b]) => ({[b]: a})
+	)
+);
+
+const known_pubkey_lookup = Object.assign(
+	{},
+	...Object.entries(known_pubkey_hashed).map(
 		([a, b]) => ({[b]: a})
 	)
 );
@@ -36,7 +48,7 @@ const CMD = {
     boot_check: 0x42,   // 66
     boot_erase: 0x43,   // 67
     boot_version: 0x44, // 68
-    boot_pubkey: 0x48,
+    boot_pubkey: 0x48,  // 72
 };
 
 const command_codes = {
@@ -48,7 +60,8 @@ const command_codes = {
 	0x41: "BOOT DONE",
 	0x42: "BOOT CHECK",
 	0x43: "BOOT ERASE",
-	0x44: "BOOT VERSION",
+  0x44: "BOOT VERSION",
+  0x48: "BOOT PUBKEY",
 };
 
 const ctap_error_codes = {
@@ -100,3 +113,38 @@ const ctap_error_codes = {
     0x39: 'CTAP2_ERR_REQUEST_TOO_LARGE',
 }
 
+const CONST_chunk_size = 240;
+
+
+const const_app_steps = {
+  communication_error: 0,
+  not_set: 1,
+  inspect: 2,
+  bootloader_check: 3,
+  after_inspection: 4,
+  bootloader_execution_start: 5,
+  bootloader_executed: 6,
+  update_ongoing: 7,
+  update_success: 8,
+  update_failure: 9,
+}
+
+const const_app_steps_strings = {
+  0: 'Communication Error',
+  1: 'Ready',
+  2: 'Running inspection',
+  3: 'Checking for bootloader',
+  4: 'Inspection finished',
+  5: 'Executing bootloader',
+  6: 'Bootloader executed',
+  7: 'Update in progress',
+  8: 'Update succeeded',
+  9: 'Update failed',
+}
+
+const const_device_state = {
+  not_set: [0,'not set'],
+  normal_mode: [1, 'normal mode'],
+  bootloader: [2, 'bootloader'],
+  not_available: [3, 'not available'],
+}

@@ -1,3 +1,5 @@
+const V = false;
+
 async function ctaphid_via_webauthn(cmd, addr, data, timeout) {
   // if a token does not support CTAP2, WebAuthn re-encodes as CTAP1/U2F:
   // https://fidoalliance.org/specs/fido-v2.0-rd-20170927/fido-client-to-authenticator-protocol-v2.0-rd-20170927.html#interoperating-with-ctap1-u2f-authenticators
@@ -24,14 +26,14 @@ async function ctaphid_via_webauthn(cmd, addr, data, timeout) {
   return navigator.credentials.get({
     publicKey: request_options
   }).then(assertion => {
-    console.log("GOT ASSERTION", assertion);
-    console.log("RESPONSE", assertion.response);
+    if (V) console.log("GOT ASSERTION", assertion);
+    if (V) console.log("RESPONSE", assertion.response);
     let response = decode_ctaphid_response_from_signature(assertion.response);
-    console.log("RESPONSE:", response);
+    if (V) console.log("RESPONSE:", response);
     return response.data;
   }).catch(error => {
-    console.log("ERROR CALLING:", cmd, addr, data);
-    console.log("THE ERROR:", error);
+    if (V) console.log("ERROR CALLING:", cmd, addr, data);
+    if (V) console.log("THE ERROR:", error);
     return Promise.resolve();  // error;
   });
 }
@@ -46,9 +48,9 @@ async function ctaphid_via_webauthn(cmd, addr, data, timeout) {
 // which can then be decoded
 
 function encode_ctaphid_request_as_keyhandle(cmd, addr, data) {
-    console.log('REQUEST CMD', cmd, '(', command_codes[cmd], ')');
-    console.log('REQUEST ADDR', addr);
-    console.log('REQUEST DATA', data);
+    if (V) console.log('REQUEST CMD', cmd, '(', command_codes[cmd], ')');
+    if (V) console.log('REQUEST ADDR', addr);
+    if (V) console.log('REQUEST DATA', data);
 
     // should we check that `data` is either null or an Uint8Array?
     data = data || new Uint8Array();
@@ -83,7 +85,7 @@ function encode_ctaphid_request_as_keyhandle(cmd, addr, data) {
 
     array.set(data, offset);
 
-    console.log('FORMATTED REQUEST:', array);
+    if (V) console.log('FORMATTED REQUEST:', array);
     return array;
 }
 
@@ -109,8 +111,8 @@ function decode_ctaphid_response_from_signature(response) {
 
     signature = new Uint8Array(response.signature);
     data = null;
-    error_code = signature[0];
-    if (error_code == 0) {
+    let error_code = signature[0];
+    if (error_code === 0) {
         data = signature.slice(1, signature.length);
 
     }
