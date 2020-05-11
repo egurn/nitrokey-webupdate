@@ -162,6 +162,7 @@ async function fetch_stable_version() {
 
   if (stable_version_github !== stable_version_fetched) {
     app.stable_version = "fetched firmware version mismatch: update app has " + stable_version_fetched + ', but latest is: ' + stable_version_github;
+    console.log(app.stable_version);
     app.correct_firmware = false;
   } else {
     app.stable_version = stable_version_fetched;
