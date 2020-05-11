@@ -1,6 +1,7 @@
 var app = new Vue({
   el: '#app',
   data: {
+    update_failure_reason: '',
     platform_description: '',
     webauthn_support: '',
     what_is_it: '',
@@ -325,6 +326,9 @@ async function fetch_firmware() {
   console.log(file_url);
 
   let fetched = await fetch(file_url);
+  if (!fetched.ok){
+    app.update_failure_reason = fetched.statusText + ' at ' + fetched.url;
+  }
   let content = await fetched.json();
 
   let firmware = websafe2string(content.firmware);

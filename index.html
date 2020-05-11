@@ -268,9 +268,14 @@
               <p>Update process failed</p>
             </div>
             <div class="message-body">
-              <p>The update process has been interrupted. Please reinsert the device to the USB slot, run the update
+              <p>The update process has been interrupted either due to device communication or network error.
+                Please reinsert the device to the USB slot, run the update
                 once again, and do not tab out during the process.
                 Device cannot be used as FIDO2 token until update is not finished successfully.</p>
+              <p v-if="update_failure_reason">
+                <br />
+                Failure reason: {{update_failure_reason}}
+              </p>
             </div>
             <button class="button is-primary" onclick="inspect()">Try again</button>
           </article>
