@@ -302,7 +302,7 @@
           </article>
         </template>
 
-        <template v-if="update_ongoing || app_step === const_app_steps.update_ongoing">
+        <template v-if="update_ongoing && app_step !== const_app_steps.update_failure || app_step === const_app_steps.update_ongoing">
           <article class="message is-warning">
             <div class="message-header">
               <p>DO NOT TOUCH YOUR PC</p>
