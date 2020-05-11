@@ -268,9 +268,14 @@
               <p>Update process failed</p>
             </div>
             <div class="message-body">
-              <p>The update process has been interrupted. Please reinsert the device to the USB slot, run the update
+              <p>The update process has been interrupted either due to device communication or network error.
+                Please reinsert the device to the USB slot, run the update
                 once again, and do not tab out during the process.
                 Device cannot be used as FIDO2 token until update is not finished successfully.</p>
+              <p v-if="update_failure_reason">
+                <br />
+                Failure reason: {{update_failure_reason}}
+              </p>
             </div>
             <button class="button is-primary" onclick="inspect()">Try again</button>
           </article>
@@ -302,7 +307,7 @@
           </article>
         </template>
 
-        <template v-if="update_ongoing || app_step === const_app_steps.update_ongoing">
+        <template v-if="update_ongoing && app_step !== const_app_steps.update_failure || app_step === const_app_steps.update_ongoing">
           <article class="message is-warning">
             <div class="message-header">
               <p>DO NOT TOUCH YOUR PC</p>
@@ -402,9 +407,9 @@
 </body>
 
 <!-- development version, includes helpful console warnings -->
-<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<!--<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>-->
 <!-- production version, optimized for size and speed -->
-<!-- <script src="https://cdn.jsdelivr.net/npm/vue"></script> -->
+ <script src="https://cdn.jsdelivr.net/npm/vue"></script>
 
 <!-- external; permissive licenses -->
 <script src="js/vendor/cbor.js"></script>

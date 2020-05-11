@@ -1,6 +1,7 @@
 var app = new Vue({
   el: '#app',
   data: {
+    update_failure_reason: '',
     platform_description: '',
     webauthn_support: '',
     what_is_it: '',
@@ -325,6 +326,9 @@ async function fetch_firmware() {
   console.log(file_url);
 
   let fetched = await fetch(file_url);
+  if (!fetched.ok){
+    app.update_failure_reason = fetched.statusText + ' at ' + fetched.url;
+  }
   let content = await fetched.json();
 
   let firmware = websafe2string(content.firmware);
@@ -353,10 +357,11 @@ async function is_bootloader() {
   if (_is_bootloader) {
     app.device_state = const_device_state.bootloader;
     const boot_pubkey = await ctaphid_via_webauthn(CMD.boot_pubkey, null, null, 1000);
-    console.log("Boot pubkey", boot_pubkey);
     app.bootloader_pubkey = sha256(boot_pubkey);
+    console.log("Boot pubkey hashed", app.bootloader_pubkey);
     const device_name = known_pubkey_lookup[app.bootloader_pubkey];
     const boot_version = await ctaphid_via_webauthn(CMD.boot_version, null, null, 1000);
+    console.log("Device name detected from pubkey", device_name);
     console.log("Boot version", boot_version);
     // const boot_version_s = new TextDecoder("utf-8").decode(boot_version);
     // app.bootloader_version = boot_version_s;

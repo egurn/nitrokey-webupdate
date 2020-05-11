@@ -3,16 +3,18 @@ const default_device = "Nitrokey FIDO2";
 
 const known_certs_hashed = {
 	"Nitrokey FIDO2":             "8e06b4060fc58677055285ce3ee6a69a0666b59f4c2a0a00a025c7f0f3ce9a50",
+	"Nitrokey FIDO2 2.0":         "5fb3d8c9b3f2ff8d2f922c89f493fcf87df580df2185fcba89a9908241505284",
 	"Nitrokey FIDO2 Development": "6c081e7b6d16010fac8aa14ac46f8132138843cc2d1f3ff0b29ccc6d6ff9aa0d",
 };
 
 const known_pubkey_hashed = {
-	"Nitrokey FIDO2":             "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx0",
+	"Nitrokey FIDO2":             "6910be885991e4c8776020e946e991474e2805db52445de99fb9c74dc54c8d53",
 	"Nitrokey FIDO2 Development": "f835275e39519a8305c629ce065f47a8b9577663bf5c57876f2cc76d03bbc078",
 };
 
 const firmware_file_name = {
 	"Nitrokey FIDO2":             "fido2-firmware-",
+	"Nitrokey FIDO2 2.0":             "fido2-firmware-",
 	"Nitrokey FIDO2 Development": "fido2-firmware-dev-",
 };
 
