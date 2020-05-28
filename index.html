@@ -15,7 +15,6 @@
       <h1 class="title">
         Nitrokey FIDO2 Webupdate
       </h1>
-      <button class="button is-light" onclick="toggle_advanced_mode()">Show more information</button>
 
       <article class="message is-info" v-if="advanced_mode">
         <div class="message-header">
@@ -373,6 +372,8 @@
     </div>
 
   </section>
+  <button class="button is-light" onclick="toggle_advanced_mode()">Show information about environment (advanced)</button>
+
   <section class="section" v-if="show_advanced_mode">
     <div class="container">
       <template v-if="advanced_mode">
