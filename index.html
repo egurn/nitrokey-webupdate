@@ -150,7 +150,7 @@
               </ol>
             </div>
             <br/>
-            <button class="button is-primary" onclick="update_secure()" v-if="what_is_it">Update {{what_is_it}}</button>
+            <button class="button is-primary" onclick="update_secure()" v-if="what_is_it && !(device_state===const_device_state.bootloader && app_step===const_app_steps.after_inspection) ">Update {{what_is_it}}</button>
           </article>
         </div>
 
