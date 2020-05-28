@@ -16,43 +16,6 @@
         Nitrokey FIDO2 Webupdate
       </h1>
 
-      <article class="message is-info" v-if="advanced_mode">
-        <div class="message-header">
-          Environment information
-        </div>
-        <div class="message-body">
-
-          <p class="content">
-            <!-- https://stackoverflow.com/a/47033801/4768845 -->
-            <span v-if="platform_description" v-text="platform_description"></span> <span v-if="webauthn_support"
-                                                                                          v-text="webauthn_support"></span>
-            <br>
-
-            Connected Nitrokey FIDO2 firmware version:
-            <span v-if="solo_version" v-text="solo_version"></span>
-            <span v-else>unknown</span>
-            <span v-if="solo_version_str" v-text="solo_version_str"></span>
-            <br>
-
-            Latest Nitrokey FIDO2 firmware version:
-            <span v-if="stable_version" v-text="stable_version"></span>
-            <span v-else>unknown</span>
-            <br/>
-            Device state: {{device_state[1]}}
-            <br/>
-            <span class="content" v-if="what_is_it && app_step >= const_app_steps.after_inspection">Connected device: {{what_is_it}}</span>
-            <br/>
-            Update application status: ({{app_step}}) {{const_app_steps_strings[app_step]}}
-          </p>
-
-          <div class="container">
-            <a href="https://github.com/Nitrokey/nitrokey-webupdate"><img height=32 src="images/github.png" width=32  alt=""/>github.com/Nitrokey/nitrokey-webupdate</a>
-          </div>
-          <button class="button is-light" onclick="toggle_advanced_mode2()">Advanced Mode</button>
-
-        </div>
-      </article>
-
       <article>
       <br />
       </article>
@@ -68,6 +31,7 @@
               <li>Reinsert the device to the USB port</li>
               <li>Press the below button <strong>Inspect key</strong></li>
             </ol>
+            <br />
             <button class="button is-primary" onclick="inspect()">Inspect Key</button>
           </div>
       </template>
@@ -371,28 +335,63 @@
     </div>
 
   </section>
-  <button class="button is-light" onclick="toggle_advanced_mode()">Show information about environment (advanced)</button>
+  <button class="button is-light" style="position: fixed; bottom: 20px; right: 10px" onclick="toggle_advanced_mode()">Show information about environment (advanced)</button>
 
-  <section class="section" v-if="show_advanced_mode">
-    <div class="container">
-      <template v-if="advanced_mode">
+  <section  class="section">
+  <article class="message is-info" v-if="advanced_mode">
+    <div class="message-header">
+      Environment information
+    </div>
+    <div class="message-body">
+
+      <p class="content">
+        <!-- https://stackoverflow.com/a/47033801/4768845 -->
+        <span v-if="platform_description" v-text="platform_description"></span> <span v-if="webauthn_support"
+                                                                                      v-text="webauthn_support"></span>
+        <br>
+
+        Connected Nitrokey FIDO2 firmware version:
+        <span v-if="solo_version" v-text="solo_version"></span>
+        <span v-else>unknown</span>
+        <span v-if="solo_version_str" v-text="solo_version_str"></span>
+        <br>
+
+        Latest Nitrokey FIDO2 firmware version:
+        <span v-if="stable_version" v-text="stable_version"></span>
+        <span v-else>unknown</span>
+        <br/>
+        Device state: {{device_state[1]}}
+        <br/>
+        <span class="content" v-if="what_is_it && app_step >= const_app_steps.after_inspection">Connected device: {{what_is_it}}</span>
+        <br/>
+        Update application status: ({{app_step}}) {{const_app_steps_strings[app_step]}}
+      </p>
+
+      <div class="container">
+        <a href="https://github.com/Nitrokey/nitrokey-webupdate"><img height=32 src="images/github.png" width=32  alt=""/>github.com/Nitrokey/nitrokey-webupdate</a>
+      </div>
+      <br><br>
+
+<!--      <button class="button is-light" onclick="toggle_advanced_mode2()">Advanced Mode</button>-->
+
+      <template v-if="false && show_advanced_mode && advanced_mode">
 
         <br><br>
 
-<!--        <select v-model="user_selected_device">-->
-<!--          <option disabled value="">Please select device</option>-->
-<!--          <option-->
-<!--            :key="index"-->
-<!--            :value="option"-->
-<!--            v-for="(option, index) in supported_devices">-->
-<!--            {{ option }}-->
-<!--          </option>-->
-<!--        </select>-->
+        <!--        <select v-model="user_selected_device">-->
+        <!--          <option disabled value="">Please select device</option>-->
+        <!--          <option-->
+        <!--            :key="index"-->
+        <!--            :value="option"-->
+        <!--            v-for="(option, index) in supported_devices">-->
+        <!--            {{ option }}-->
+        <!--          </option>-->
+        <!--        </select>-->
 
-<!--        <br><br>-->
-<!--        <button class="button is-primary" onclick="update_secure()" v-if="user_selected_device">I CONFIRM:-->
-<!--          {{user_selected_device}} plugged in - reflash it-->
-<!--        </button>-->
+        <!--        <br><br>-->
+        <!--        <button class="button is-primary" onclick="update_secure()" v-if="user_selected_device">I CONFIRM:-->
+        <!--          {{user_selected_device}} plugged in - reflash it-->
+        <!--        </button>-->
 
         <button class="button is-primary" onclick="run_bootloader()">Run bootloader</button>
         <button class="button is-primary" onclick="exit_bootloader()">Exit bootloader</button>
@@ -400,6 +399,12 @@
 
       </template>
 
+    </div>
+  </article>
+  </section>
+
+  <section class="section" v-if="show_advanced_mode">
+    <div class="container">
 
     </div>
   </section>
