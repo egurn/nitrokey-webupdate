@@ -15,48 +15,10 @@
       <h1 class="title">
         Nitrokey FIDO2 Webupdate
       </h1>
-      <button class="button is-light" onclick="toggle_advanced_mode()">Show more information</button>
 
-      <article class="message is-info" v-if="advanced_mode">
-        <div class="message-header">
-          Environment information
-        </div>
-        <div class="message-body">
-
-          <p class="content">
-            <!-- https://stackoverflow.com/a/47033801/4768845 -->
-            <span v-if="platform_description" v-text="platform_description"></span> <span v-if="webauthn_support"
-                                                                                          v-text="webauthn_support"></span>
-            <br>
-
-            Connected Nitrokey FIDO2 firmware version:
-            <span v-if="solo_version" v-text="solo_version"></span>
-            <span v-else>unknown</span>
-            <span v-if="solo_version_str" v-text="solo_version_str"></span>
-            <br>
-
-            Latest Nitrokey FIDO2 firmware version:
-            <span v-if="stable_version" v-text="stable_version"></span>
-            <span v-else>unknown</span>
-            <br/>
-            Device state: {{device_state[1]}}
-            <br/>
-            <span class="content" v-if="what_is_it && app_step >= const_app_steps.after_inspection">Connected device: {{what_is_it}}</span>
-            <br/>
-            Update application status: ({{app_step}}) {{const_app_steps_strings[app_step]}}
-          </p>
-
-          <div class="container">
-            <a href="https://github.com/Nitrokey/nitrokey-webupdate"><img height=32 src="images/github.png" width=32  alt=""/>github.com/Nitrokey/nitrokey-webupdate</a>
-          </div>
-          <button class="button is-light" onclick="toggle_advanced_mode2()">Advanced Mode</button>
-
-        </div>
-      </article>
-
-      <article>
-      <br />
-      </article>
+<!--      <article>-->
+<!--      <br />-->
+<!--      </article>-->
 
       <template v-if="app_step <= const_app_steps.inspect && !is_not_supported_configuration && correct_firmware">
         <article class="message is-info">
@@ -69,6 +31,7 @@
               <li>Reinsert the device to the USB port</li>
               <li>Press the below button <strong>Inspect key</strong></li>
             </ol>
+            <br />
             <button class="button is-primary" onclick="inspect()">Inspect Key</button>
           </div>
       </template>
@@ -79,7 +42,7 @@
             <p>Unsupported OS/browser configuration</p>
           </div>
           <div class="message-body">
-            <p>This OS/browser configuration is not supported at the moment.</p>
+            <p>This OS/browser configuration ({{platform_description}}) is not supported at the moment.</p>
 
             <p>
               Please use Firefox browser for the time of the update. It can be downloaded here:
@@ -172,11 +135,10 @@
 <!--                  written to its memory.-->
 <!--                </li>-->
 <!--              <li>Please ignore the system/browser popups shown during the operation (e.g. asking for trying another key) - this is expected.</li>-->
-              <li>Once the update process is started, please do not make any operations on the computer until it finishes, otherwise it will be cancelled.
-                Please ignore browser and system popups.
+              <li><strong>WARNING:</strong> Once the update process is started, do not make any operations on the computer! Ignore browser and system popups! Otherwise your Nitrokey may be bricked.
               </li>
-                <li>Each time the device is blinking with a white light, please touch it until it blinks with all colors rapidly. If after 10 seconds it won't change from white to color light, please release it and repeat.
-                  Do not touch the device while it blinks with all colors.
+                <li><strong>WARNING:</strong> Each time the device is blinking with a white light, touch it until it rapidly blinks colorful.
+                  If after 10 seconds it won't change from white to colorful light, release it and repeat. Do not touch the device while it blinks with colorful light.
                 </li>
 <!--                <li>This operation is safe for the device and user data. It takes about 10 minutes.</li>-->
 <!--                <li>If the update process will be interrupted, it has to be repeated until success, otherwise device-->
@@ -185,11 +147,10 @@
 <!--                <li>Please do not change the application focus (e.g. with switching to another application or pressing-->
 <!--                  Alt+Tab), or the update process will be canceled.-->
 <!--                </li>-->
-                <li>Please press the "Update" button below to continue.</li>
               </ol>
             </div>
             <br/>
-            <button class="button is-primary" onclick="update_secure()" v-if="what_is_it">Update {{what_is_it}}</button>
+            <button class="button is-primary" onclick="update_secure()" v-if="what_is_it && !(device_state===const_device_state.bootloader && app_step===const_app_steps.after_inspection) ">Update {{what_is_it}}</button>
           </article>
         </div>
 
@@ -249,12 +210,12 @@
             </div>
             <div class="message-body">
               <ol>
-                <li><strong>Do not touch your PC. Touch your device.</strong></li>
-              <li>Touch briefly the device. Then keep pressing touch button on the device until it stops blinking with white light. Release press and
-                repeat if blinks again white. Do not touch the device once it emits color light.</li>
-                <li>Once update is started, no further action is required from the user.</li>
-                <li>Please ignore system message about trying another key! These popups are expected.</li>
-                <li>If either device or browser will stop responding, please reinsert the device to the USB slot.</li>
+                <li><strong>WARNING:</strong> Once the update process is started, do not make any operations on the computer! Ignore browser and system popups (e.g. about trying another key)!
+                  Otherwise your Nitrokey may be bricked.
+                </li>
+                <li><strong>WARNING:</strong> Each time the device is blinking with a white light, touch it until it rapidly blinks colorful.
+                  If after 10 seconds it won't change from white to colorful light, release it and repeat. Do not touch the device while it blinks with colorful light.
+                </li>
               </ol>
             </div>
 
@@ -269,9 +230,9 @@
             </div>
             <div class="message-body">
               <p>The update process has been interrupted either due to device communication or network error.
-                Please reinsert the device to the USB slot, run the update
-                once again, and do not tab out during the process.
-                Device cannot be used as FIDO2 token until update is not finished successfully.</p>
+                Please reinsert the device to the USB slot, run the update once again, and do not tab out during the process.
+                <br />
+                Device cannot be used as a FIDO2 token until the update process is finished successfully.</p>
               <p v-if="update_failure_reason">
                 <br />
                 Failure reason: {{update_failure_reason}}
@@ -313,7 +274,7 @@
               <p>DO NOT TOUCH YOUR PC</p>
             </div>
             <div class="message-body">
-              During the firmware update, you will see flashing popups - please ignore them.
+              During the firmware update, you will see flashing popups - <strong>ignore them!</strong>
               <br/>
               Do NOT change application focus (e.g. by "tabbing out") during the update, or it will abort.
             </div>
@@ -340,7 +301,7 @@
               <p>UPDATE SUCCESSFUL!</p>
             </div>
             <div class="message-body">
-              Your key is now updated. Current firmware version: {{ solo_version }}.
+              Your Nitrokey is now updated. Current firmware version: {{ solo_version }}.
             </div>
           </article>
         </template>
@@ -373,26 +334,63 @@
     </div>
 
   </section>
-  <section class="section" v-if="show_advanced_mode">
-    <div class="container">
-      <template v-if="advanced_mode">
+  <button class="button is-light" style="position: fixed; bottom: 20px; right: 10px" onclick="toggle_advanced_mode()">Show information about environment (advanced)</button>
+
+  <section  class="section">
+  <article class="message is-info" v-if="advanced_mode">
+    <div class="message-header">
+      Environment information
+    </div>
+    <div class="message-body">
+
+      <p class="content">
+        <!-- https://stackoverflow.com/a/47033801/4768845 -->
+        <span v-if="platform_description" v-text="platform_description"></span> <span v-if="webauthn_support"
+                                                                                      v-text="webauthn_support"></span>
+        <br>
+
+        Connected Nitrokey FIDO2 firmware version:
+        <span v-if="solo_version" v-text="solo_version"></span>
+        <span v-else>unknown</span>
+        <span v-if="solo_version_str" v-text="solo_version_str"></span>
+        <br>
+
+        Latest Nitrokey FIDO2 firmware version:
+        <span v-if="stable_version" v-text="stable_version"></span>
+        <span v-else>unknown</span>
+        <br/>
+        Device state: {{device_state[1]}}
+        <br/>
+        <span class="content" v-if="what_is_it && app_step >= const_app_steps.after_inspection">Connected device: {{what_is_it}}</span>
+        <br/>
+        Update application status: ({{app_step}}) {{const_app_steps_strings[app_step]}}
+      </p>
+
+      <div class="container">
+        <a href="https://github.com/Nitrokey/nitrokey-webupdate"><img height=32 src="images/github.png" width=32  alt=""/>github.com/Nitrokey/nitrokey-webupdate</a>
+      </div>
+      <br><br>
+
+<!--      <button class="button is-light" onclick="toggle_advanced_mode2()">Advanced Mode</button>-->
+
+      <template v-if="false && show_advanced_mode && advanced_mode">
 
         <br><br>
 
-<!--        <select v-model="user_selected_device">-->
-<!--          <option disabled value="">Please select device</option>-->
-<!--          <option-->
-<!--            :key="index"-->
-<!--            :value="option"-->
-<!--            v-for="(option, index) in supported_devices">-->
-<!--            {{ option }}-->
-<!--          </option>-->
-<!--        </select>-->
+        <!--        <select v-model="user_selected_device">-->
+        <!--          <option disabled value="">Please select device</option>-->
+        <!--          <option-->
+        <!--            :key="index"-->
+        <!--            :value="option"-->
+        <!--            v-for="(option, index) in supported_devices">-->
+        <!--            {{ option }}-->
+        <!--          </option>-->
+        <!--        </select>-->
 
-<!--        <br><br>-->
-<!--        <button class="button is-primary" onclick="update_secure()" v-if="user_selected_device">I CONFIRM:-->
-<!--          {{user_selected_device}} plugged in - reflash it-->
-<!--        </button>-->
+        <!--        <br><br>-->
+        <!--        <button class="button is-primary" onclick="update_secure()" v-if="user_selected_device">I CONFIRM:-->
+        <!--          {{user_selected_device}} plugged in - reflash it-->
+        <!--        </button>-->
 
         <button class="button is-primary" onclick="run_bootloader()">Run bootloader</button>
         <button class="button is-primary" onclick="exit_bootloader()">Exit bootloader</button>
@@ -400,6 +398,12 @@
 
       </template>
 
+    </div>
+  </article>
+  </section>
+
+  <section class="section" v-if="show_advanced_mode">
+    <div class="container">
 
     </div>
   </section>
