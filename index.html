@@ -28,9 +28,12 @@
           <div class="message-body">
             <p>To start the update process please:</p>
             <ol>
-              <li>Reinsert the device to the USB port</li>
+              <li>Remove all FIDO U2F and FIDO2 devices</li>
+              <li>Insert the Nitrokey FIDO2 device to the USB port</li>
               <li>Press the below button <strong>Inspect key</strong></li>
             </ol>
+            <br />
+            <p>Please note that Nitrokey FIDO U2F device does not support firmware updates.</p>
             <br />
             <button class="button is-primary" onclick="inspect()">Inspect Key</button>
           </div>
@@ -179,11 +182,13 @@
               <p>Update application could not communicate with the device. Please try again and make sure to:
               </p>
               <ol type="1">
-                <li>Device is inserted to the USB slot</li>
-                <li>Do not lose browser focus by switching applications</li>
-                <!--                <li>Confirm all requests for device communication (if needed)</li>-->
+                <li>Nitrokey FIDO2 device is inserted to the USB slot</li>
+                <li>All other FIDO U2F and FIDO2 devices are disconnected</li>
+                <li>Do not lose browser focus by switching applications or activating screensaver</li>
                 <li>Check if device responds to the FIDO U2F / FIDO2 requests on other sites (optionally)</li>
               </ol>
+              <br />
+              <p>Please note that Nitrokey FIDO U2F device does not support firmware updates.</p>
             </div>
           </article>
         </template>
