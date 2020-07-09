@@ -1,5 +1,6 @@
 #!/bin/bash -xe
 
+mkdir -p data
 ls -l data > data.previous
 sha256sum data/* >> data.previous
 
@@ -10,29 +11,26 @@ STABLEURL=https://raw.githubusercontent.com/Nitrokey/nitrokey-fido2-firmware/mas
 wget -P data/ ${STABLEURL}
 STABLE_VERSION="$(cat data/STABLE_VERSION)"
 echo "${STABLE_VERSION}"
+SVS=${STABLE_VERSION//.nitrokey/}
+echo "${SVS}"
 
-NAMEMAIN=fido2-firmware-${STABLE_VERSION}
-NAMEDEV=fido2-firmware-dev-${STABLE_VERSION}
+NAMEMAIN=nitrokey-fido2-firmware-${SVS}
+# NAMEDEV=nitrokey-fido2-firmware-dev-${SVS}
 
 BINMAIN=${NAMEMAIN}.json
-BINDEV=${NAMEDEV}.json
+# BINDEV=${NAMEDEV}.json
 
-BINURL=https://github.com/Nitrokey/nitrokey-fido2-firmware/releases/download/${STABLE_VERSION}/fido2-firmware-${STABLE_VERSION}
-BINURLDEV=https://github.com/Nitrokey/nitrokey-fido2-firmware/releases/download/${STABLE_VERSION}/fido2-firmware-dev-${STABLE_VERSION}
+# https://github.com/Nitrokey/nitrokey-fido2-firmware/releases/download/2.0.0.nitrokey/nitrokey-fido2-firmware-2.0.0.json
+DOWNLOAD_URL=https://github.com/Nitrokey/nitrokey-fido2-firmware/releases/download/${STABLE_VERSION}
+BINURL=${DOWNLOAD_URL}/${BINMAIN}
+# BINURLDEV=${DOWNLOAD_URL}/${BINDEV}
 
-wget -P data/ ${BINURL}.json
-wget -P data/ ${BINURL}.json.sha2
-wget -P data/ ${BINURLDEV}.json
-wget -P data/ ${BINURLDEV}.json.sha2
+wget -P data/ "${BINURL}"
 
-pushd data/
-sha256sum -c ${BINMAIN}.sha2
-sha256sum -c ${BINDEV}.sha2
-popd
 
 ls -l data > data.current
 sha256sum data/* >> data.current
 
 ls -lh data
 
-diff data.previous data.current
+git diff --no-index data.previous data.current || true
