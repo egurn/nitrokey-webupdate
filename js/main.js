@@ -107,26 +107,29 @@ async function send_command(cmd, allow_failure) {
 }
 
 async function send_command_long(cmd, addr, data, allow_failure) {
+  const verbose = false;
   app.update_paused = false;
-  console.trace("Send command", cmd, addr, data, allow_failure);
+  if (verbose) console.trace("Send command", cmd, addr, data, allow_failure);
   const ATTEMPTS = 5;
   for (let counter = 0; true; counter++) {
     try {
       const p = await ctaphid_via_webauthn(cmd, addr, data, 100*1000);
       if (typeof p === "undefined" || p && p.status === 'CTAP1_SUCCESS') {
         if (allow_failure && counter >= ATTEMPTS) {
-          console.log("Final result: ", counter, p);
+          if (verbose) console.log("Final result: ", counter, p);
           app.update_paused = false;
           return p;
         }
-        console.log("Failed reply for command: ", cmd, p);
-        console.log("retry for ", counter);
+        if (verbose || counter > 10 && counter % 5 == 0){
+          console.log("Failed reply for command: ", cmd, p);
+          console.log("retry for ", counter);
+        }
         if (counter>2){
           app.update_paused = true;
         }
         await sleep(700);
       } else {
-        console.log("Final result: ", counter, p);
+        if (verbose) console.log("Final result: ", counter, p);
         app.update_paused = false;
         return p;
       }
