@@ -47,17 +47,20 @@
           <div class="message-body">
             <p>This OS/browser configuration ({{platform_description}}) is not supported at the moment.</p>
 
-            <p>We experience issues while executing update on Windows 10 using all browsers, therefore this platform is temporarily disabled. 
-              We are working to restore support for it as soon as possible.</p>
+            <p>We experience UI issues while executing update on Windows 10 using browsers other than Firefox, therefore such are temporarily disabled by default.
+              We are working to restore support for them.</p>
 
             <p>
-              For other operating systems please use Firefox browser for the time of the update. It can be downloaded here:
+              Please use Firefox browser for the time of the update. It can be downloaded here:
               <a href="https://www.mozilla.org/en-US/firefox/new/" >Firefox download page</a>.
             </p>
             <p>
               More information about supported browsers can be found here: <a href="https://github.com/Nitrokey/nitrokey-webupdate/blob/master/README.md">Readme file</a>.
             </p>
-
+            <div v-if="advanced_buttons" >
+              <br/>
+              <button class="button is-primary" onclick="force_bad_platform()">I want to try anyway (advanced)</button>
+            </div>
           </div>
         </article>
       </template>
@@ -170,6 +173,10 @@
               <p>
                 Your firmware is up to date! There is no need to run the update.
               </p>
+              <div v-if="advanced_buttons" >
+                <br/>
+                <button class="button is-primary" onclick="force_run_update()" v-if="what_is_it ">I want to force update (advanced)</button>
+              </div>
             </div>
           </article>
 
@@ -282,9 +289,16 @@
               <p>DO NOT TOUCH YOUR PC</p>
             </div>
             <div class="message-body">
+              <span v-if="!platform_os_is_windows || platform_os_is_windows && p_progress > 0.1" >
               During the firmware update, you will see flashing popups - <strong>ignore them!</strong>
+                </span>
               <br/>
-              Do NOT change application focus (e.g. by "tabbing out") during the update, or it will abort.
+              <div v-if="platform_os_is_windows && p_progress <= 0.1 && p_progress !== null "> Please <strong>cancel</strong> the following popup:
+                <br/>
+                <img src="images/webupdate-cancel-arr.png" />
+              </div>
+              <br/>
+              Do NOT change application focus (e.g. by "tabbing out") during the update, or it will pause or abort.
             </div>
           </article>
           <progress class="progress is-success is-large" max="100" v-bind:value="reply_wait" v-if="reply_wait">{{
@@ -294,7 +308,7 @@
 
         <!--          <button onclick="update()" class="button is-primary" v-if="what_is_it">Reflash {{what_is_it}}</button>-->
         <p v-if="app_step===const_app_steps.update_ongoing">
-          <span v-if="update_status" v-text="update_status"></span>
+          <span v-if="update_status" v-text="update_status"></span> <span v-if="update_status && update_paused"> (paused; click this window to continue) </span>
           <br>
           <span v-if="update_progress" v-text="update_progress"></span>
           <progress class="progress is-success is-large" max="100" v-bind:value="p_progress">{{
@@ -380,7 +394,10 @@
       </div>
       <br><br>
 
-<!--      <button class="button is-light" onclick="toggle_advanced_mode2()">Advanced Mode</button>-->
+
+      <button class="button is-light" onclick="show_advanced_buttons()">Advanced Mode: {{advanced_buttons}}</button>
+
+      <!--      <button class="button is-light" onclick="toggle_advanced_mode2()">Advanced Mode</button>-->
 
       <template v-if="false && show_advanced_mode && advanced_mode">
 

@@ -1,6 +1,7 @@
 var app = new Vue({
   el: '#app',
   data: {
+    advanced_buttons: false,
     update_failure_reason: '',
     platform_description: '',
     webauthn_support: '',
@@ -42,6 +43,8 @@ var app = new Vue({
     const_app_steps_strings: const_app_steps_strings,
     solo_version_str: '',
     bootloader_execution_attempt: 0,
+    update_paused: false,
+    platform_os_is_windows: false,
   }
 });
 
@@ -72,6 +75,7 @@ async function toggle_advanced_mode() {
 
 async function inspect_browser() {
   app.platform_description = platform.description;
+  app.platform_os_is_windows = platform.os["family"] === "Windows";
   if (!window.PublicKeyCredential) {
     app.webauthn_support = "(unsupported; your browser does not support WebAuthn, please use another one)";
   } else {
@@ -80,26 +84,70 @@ async function inspect_browser() {
   if (platform.os["family"] === "Linux") {
     app.is_linux = true;
   }
-  if (platform.name === "Chrome" && platform.os["family"] !== "Windows" || platform.name === "Safari" || platform.os["family"] === "Windows"){
+  // if (platform.name === "Chrome" && platform.os["family"] !== "Windows" || platform.name === "Safari"
+  if (platform.name !== "Firefox") {
     app.is_not_supported_configuration = true;
   }
 }
 
-async function run_bootloader() {
+async function force_bad_platform(){
+  app.is_not_supported_configuration = false;
+}
 
-  await ctaphid_via_webauthn(
-    CMD.solo_bootloader, null, null, 1000
-  ).then(response => {
-      console.log("bootloader RESPONSE", response);
-      // FIXME handle failure in call
-      app.cannot_flash = null;
-      app.bootloader_called = true;
-      app.app_step = const_app_steps.bootloader_executed;
+async function force_run_update(){
+  app.needs_update  = true;
+}
+
+async function show_advanced_buttons(){
+  app.advanced_buttons = !app.advanced_buttons;
+}
+
+async function send_command(cmd, allow_failure) {
+  return send_command_long(cmd, null, null, allow_failure);
+}
+
+async function send_command_long(cmd, addr, data, allow_failure) {
+  app.update_paused = false;
+  console.trace("Send command", cmd, addr, data, allow_failure);
+  const ATTEMPTS = 5;
+  for (let counter = 0; true; counter++) {
+    try {
+      const p = await ctaphid_via_webauthn(cmd, addr, data, 100*1000);
+      if (typeof p === "undefined" || p && p.status === 'CTAP1_SUCCESS') {
+        if (allow_failure && counter >= ATTEMPTS) {
+          console.log("Final result: ", counter, p);
+          app.update_paused = false;
+          return p;
+        }
+        console.log("Failed reply for command: ", cmd, p);
+        console.log("retry for ", counter);
+        if (counter>2){
+          app.update_paused = true;
+        }
+        await sleep(700);
+      } else {
+        console.log("Final result: ", counter, p);
+        app.update_paused = false;
+        return p;
+      }
+    } catch (e) {
+      console.exception("Error while getting ctaphid reply", e);
     }
-  )
-    .catch(error => {
-      console.log(error);
-    });
+  }
+}
+
+async function run_bootloader() {
+  try {
+    const response = await send_command(CMD.solo_bootloader, true);
+    console.log("bootloader RESPONSE", response);
+    // FIXME handle failure in call in UI
+    app.cannot_flash = null;
+    app.bootloader_called = true;
+    app.app_step = const_app_steps.bootloader_executed;
+  } catch (error) {
+    console.log(error);
+    console.exception()
+  }
 
 }
 
@@ -107,43 +155,33 @@ async function exit_bootloader() {
   let signed_firmware = await fetch_firmware();
   let signature = signed_firmware.signature;
 
-  await ctaphid_via_webauthn(
-    CMD.boot_done, 0x8000, signature
-  ).then(response => {
-      console.log("bootloader RESPONSE", response);
-      app.bootloader_called = false;
-      app.app_step = const_app_steps.not_set;
-    }
-  )
-    .catch(error => {
-      console.log(error);
-    });
+  try {
+    const response = await send_command_long(CMD.boot_done, 0x8000, signature, true);
+    console.log("bootloader RESPONSE", response);
+    app.bootloader_called = false;
+    app.app_step = const_app_steps.not_set;
+  } catch (error) {
+    console.log(error);
+  }
 }
 
 async function check_version() {
-  await ctaphid_via_webauthn(
-    // option a) timeout --> leads to ugly persistent popup in chrome (firefox is better)
-    CMD.solo_version, null, null, 1000
-    // option b) no timeout --> user needs to click cancel
-    // CMD.solo_version,
-  ).then(response => {
-      console.log("check-version RESPONSE", response);
-      if (response && typeof response !== "undefined") {
-        app.solo_version_parts = response.slice(0, 3);
-        app.solo_version = response[0] + '.' + response[1] + '.' + response[2];
-        app.solo_version_str = '';
-        app.device_state = const_device_state.normal_mode;
-        app.is_solo_secure = true;
-      } else {
-        // we assume this is a pre-1.1.0 solo
-        app.solo_version_parts = new Uint8Array([0, 0, 0]);
-        app.solo_version = "unknown";
-      }
+  try {
+    const response = await send_command(CMD.solo_version, false);
+    console.log("check-version RESPONSE", response);
+    if (response && typeof response !== "undefined") {
+      app.solo_version_parts = response.slice(0, 3);
+      app.solo_version = response[0] + '.' + response[1] + '.' + response[2];
+      app.solo_version_str = '';
+      app.device_state = const_device_state.normal_mode;
+      app.is_solo_secure = true;
+    } else {
+      app.solo_version_parts = new Uint8Array([0, 0, 0]);
+      app.solo_version = "unknown";
     }
-  )
-    .catch(error => {
-      console.log(error);
-    });
+  } catch (error) {
+    console.log(error);
+  }
 }
 
 async function fetch_stable_version() {
@@ -173,6 +211,12 @@ async function fetch_stable_version() {
 }
 
 async function prepare() {
+  let myStorage = window.localStorage;
+  let status = localStorage.getItem('update');
+  // if (status === 'in-progress'){
+  //   update();
+  // }
+
   await inspect_browser();
   await fetch_stable_version();
   // await check_version();
@@ -240,7 +284,7 @@ async function run_animation(time_seconds) {
 }
 
 async function inspect() {
-  try{
+  try {
     return await inspect_();
   } catch (e) {
     console.log(e);
@@ -315,6 +359,9 @@ async function inspect_() {
       || (need[0] === have[0] && need[1] === have[1] && need[2] > have[2])
     ;
   }
+  // console.log("Forcing true to update. Previous value: ", app.needs_update);
+  // app.needs_update = true;
+
   app.app_step = const_app_steps.after_inspection;
 }
 
@@ -322,11 +369,17 @@ async function fetch_firmware() {
   // TODO: cache downloads
   url_base = "data/";
   let fname = firmware_file_name[app.what_is_it]
+
+  if (!app.stable_version) {
+    console.log("Invalid stable version", app.stable_version);
+    throw "Invalid stable version";
+  }
+
   let file_url = url_base + fname + app.stable_version + ".json";
   console.log(file_url);
 
   let fetched = await fetch(file_url);
-  if (!fetched.ok){
+  if (!fetched.ok) {
     app.update_failure_reason = fetched.statusText + ' at ' + fetched.url;
   }
   let content = await fetched.json();
@@ -344,11 +397,11 @@ async function fetch_firmware() {
 
 async function is_bootloader() {
   app.device_state = const_device_state.not_set;
-
-  const response = await ctaphid_via_webauthn(CMD.boot_check, null, null, 1000);
+  const response = await send_command(CMD.boot_check, true);
   console.log("Boot check", response);
   if (response === undefined) {
     app.device_state = const_device_state.not_available;
+    console.log("Device not available", response);
     throw "Device not available";
   }
 
@@ -356,11 +409,11 @@ async function is_bootloader() {
   console.log("IS BOOTLOADER", _is_bootloader);
   if (_is_bootloader) {
     app.device_state = const_device_state.bootloader;
-    const boot_pubkey = await ctaphid_via_webauthn(CMD.boot_pubkey, null, null, 1000);
+    const boot_pubkey = await send_command(CMD.boot_pubkey, false);
     app.bootloader_pubkey = sha256(boot_pubkey);
     console.log("Boot pubkey hashed", app.bootloader_pubkey);
     const device_name = known_pubkey_lookup[app.bootloader_pubkey];
-    const boot_version = await ctaphid_via_webauthn(CMD.boot_version, null, null, 1000);
+    const boot_version = await send_command(CMD.boot_version, false);
     console.log("Device name detected from pubkey", device_name);
     console.log("Boot version", boot_version);
     // const boot_version_s = new TextDecoder("utf-8").decode(boot_version);
@@ -394,7 +447,7 @@ function update_failure() {
 }
 
 async function update() {
-  try{
+  try {
     return await update_();
   } catch (e) {
     console.log(e);
@@ -409,7 +462,7 @@ async function update_() {
   if (app.user_selected_device) {
     app.what_is_it = app.user_selected_device;
   }
-  run_animation(15*5*2);
+  run_animation(15 * 5 * 2);
   let bootloader_exec_success = false;
   app.app_step = const_app_steps.bootloader_execution_start;
   for (let i = 0; i < 5; i++) {
@@ -447,32 +500,35 @@ async function update_() {
   let addresses = blocks.keys();
 
   let addr = addresses.next();
-  let chunk_size = CONST_chunk_size;
+  const chunk_size = CONST_chunk_size;
   console.log("WRITING...");
   app.update_status = "Update is running";
   app.app_step = const_app_steps.update_ongoing;
   app.p_progress = 0;
 
+  let myStorage = window.localStorage;
+  localStorage.setItem('update', 'in-progress');
+  // localStorage.setItem('u-state', 0);
+
+  const starti = 0; //parseInt(localStorage.getItem('u-state')); //todo support resume
+
   while (!addr.done) {
     const data = blocks.get(addr.value);
-    for (let i = 0; i < data.length; i += chunk_size) {
+    for (let i = starti; i < data.length; i += chunk_size) {
+
       await sleep(20);
-      if (!app.cancel_animation && i>0){
+      if (!app.cancel_animation && i > 0) {
         cancel_animation();
       }
       const chunk = data.slice(i, i + chunk_size);
+      localStorage.setItem('u-state', i + chunk_size);
 
-      const p = await ctaphid_via_webauthn(
+      const p = await send_command_long(
         CMD.boot_write,
         addr.value + i,
-        chunk
+        chunk,
+        false
       );
-      if (typeof p === "undefined" || p.status === 'CTAP1_SUCCESS') {
-        console.log("Failed reply: ", p);
-        update_failure();
-        return;
-      }
-      // TEST(p.status !== 'CTAP1_SUCCESS', 'Device wrote data');
 
       const progress = (((i / data.length) * 100 * 100) | 0) / 100;
       if (i % 1000 === 0)
@@ -489,9 +545,8 @@ async function update_() {
   console.log("...DONE");
 
   app.update_status = "VERIFYING FIRMWARE SIGNATURE";
-  p = await ctaphid_via_webauthn(
-    CMD.boot_done, 0x8000, signature
-  );
+  const p = await send_command_long(CMD.boot_done, 0x8000, signature, false);
+
   app.update_status = null;
   app.update_success = true;
   app.update_ongoing = false;
