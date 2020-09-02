@@ -515,6 +515,8 @@ async function update_() {
 
   const starti = 0; //parseInt(localStorage.getItem('u-state')); //todo support resume
 
+  await sleep(100);
+
   while (!addr.done) {
     const data = blocks.get(addr.value);
     for (let i = starti; i < data.length; i += chunk_size) {
