@@ -189,28 +189,15 @@ async function check_version() {
 
 async function fetch_stable_version() {
   var response = await fetch(
-    "https://raw.githubusercontent.com/Nitrokey/nitrokey-fido2-firmware/master/STABLE_VERSION",
-    {cache: "no-store"}
-  );
-  let stable_version_github = (await response.text()).trim();
-  console.log("STABLE_VERSION GITHUB", stable_version_github);
-
-  var response = await fetch(
     "data/STABLE_VERSION",
     {cache: "no-store"}
   );
   let stable_version_fetched = (await response.text()).trim();
   console.log("STABLE_VERSION FETCHED", stable_version_fetched);
 
-  if (stable_version_github !== stable_version_fetched) {
-    app.stable_version = "fetched firmware version mismatch: update app has " + stable_version_fetched + ', but latest is: ' + stable_version_github;
-    console.log(app.stable_version);
-    app.correct_firmware = false;
-  } else {
-    app.stable_version = stable_version_fetched;
-    app.stable_version_parts = new Uint8Array(stable_version_fetched.split(".").map(Number));
-    app.correct_firmware = true;
-  }
+  app.stable_version = stable_version_fetched;
+  app.stable_version_parts = new Uint8Array(stable_version_fetched.split(".").map(Number));
+  app.correct_firmware = true;
 }
 
 async function prepare() {
