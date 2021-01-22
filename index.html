@@ -47,16 +47,25 @@
           <div class="message-body">
             <p>This OS/browser configuration ({{platform_description}}) is not supported at the moment.</p>
 
-            <p>We experience UI issues while executing update on Windows 10 using browsers other than Firefox, therefore such are temporarily disabled by default.
-              We are working to restore support for them.</p>
+            <p v-if="platform_os_is_windows">
+              <br />
+              We experience UI issues while executing update on Windows 10 using browsers other than Firefox, therefore such are temporarily disabled by default.
+              We plan to restore support for them.</p>
 
             <p>
               Please use Firefox browser for the time of the update. It can be downloaded here:
               <a href="https://www.mozilla.org/en-US/firefox/new/" >Firefox download page</a>.
             </p>
             <p>
-              More information about supported browsers can be found here: <a href="https://github.com/Nitrokey/nitrokey-webupdate/blob/master/README.md">Readme file</a>.
+              More information about supported browsers can be found here: <a href="https://github.com/Nitrokey/nitrokey-webupdate/blob/master/README.md#nitrokey-webupdate">Readme file</a>.
             </p>
+
+            <p>
+              <br />
+              If you would like to try the update process in your current browser, please find and press the "Advanced Mode" button,
+              available under "Show information about environment (advanced)" button shown in the bottom right corner of the page.
+            </p>
+
             <div v-if="advanced_buttons" >
               <br/>
               <button class="button is-primary" onclick="force_bad_platform()">I want to try anyway (advanced)</button>
@@ -149,6 +158,8 @@
               </li>
                 <li><strong>WARNING:</strong> Each time the device is blinking with a white or yellow/purple light, touch it until it rapidly blinks colorful.
                   If after 10 seconds it won't change from white to colorful light, release it and repeat. Do not touch the device while it blinks with colorful light.
+                </li>
+                <li><strong>WARNING:</strong> You will be requested to close the browser after the update process finishes. Please finish all your current work.
                 </li>
 <!--                <li>This operation is safe for the device and user data. It takes about 10 minutes.</li>-->
 <!--                <li>If the update process will be interrupted, it has to be repeated until success, otherwise device-->
