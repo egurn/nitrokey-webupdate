@@ -27,6 +27,8 @@ BINURL=${DOWNLOAD_URL}/${BINMAIN}
 
 wget -P data/ "${BINURL}"
 
+# quick workaround for the different path coded in the WebUpdate
+pushd data; ln -s ${BINMAIN} fido2-firmware-${STABLE_VERSION}.json; popd
 
 ls -l data > data.current
 sha256sum data/* >> data.current
