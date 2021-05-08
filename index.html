@@ -154,12 +154,11 @@
 <!--                </li>-->
 <!--              <li>Please ignore the system/browser popups shown during the operation (e.g. asking for trying another key) - this is expected.</li>-->
                 <li v-if="platform_os_is_windows">Some system popups will require cancellation. Please follow the guide.</li>
-              <li><strong>WARNING:</strong> Once the update process is started, do not make any operations on the computer! Ignore browser and system popups! Otherwise your Nitrokey may be bricked.
+              <li><strong>WARNING:</strong> Once the update process is started, do not make any operations on the computer!
               </li>
-                <li><strong>WARNING:</strong> Each time the device is blinking with a white or yellow/purple light, touch it until it rapidly blinks colorful.
-                  If after 10 seconds it won't change from white to colorful light, release it and repeat. Do not touch the device while it blinks with colorful light.
-                </li>
-                <li><strong>WARNING:</strong> You will be requested to close the browser after the update process finishes. Please finish all your current work.
+                <li><strong>WARNING:</strong> Each time the device is blinking, touch it for 10 seconds.
+                  If after 10 seconds it won't change to colorful light, release the touch and try again.
+                  Do not touch the device while it blinks with colorful light.
                 </li>
 <!--                <li>This operation is safe for the device and user data. It takes about 10 minutes.</li>-->
 <!--                <li>If the update process will be interrupted, it has to be repeated until success, otherwise device-->
@@ -241,7 +240,7 @@
                 <div class="column" v-if="platform_os_is_windows">
 
                   <ol>
-                    <li>Please press the device until it starts flashing in all colors</li>
+                    <li>Please press the device for 10 seconds, until it starts flashing in all colors</li>
                     <li>
                   <div> When device is flashing in all colors, please <strong>cancel</strong> the "Touch your security key" popup:
                     <br/>
@@ -259,7 +258,7 @@
                       computer! Ignore browser and system popups (e.g. about trying another key)!
                       Otherwise your Nitrokey may be bricked.
                     </li>
-                    <li><strong>WARNING:</strong> Each time the device is blinking with a white light, touch it until it
+                    <li><strong>WARNING:</strong> Each time the device is blinking, touch it until it
                       rapidly blinks colorful.
                       If after 10 seconds it won't change from white to colorful light, release it and repeat. Do not
                       touch the device while it blinks with colorful light.
