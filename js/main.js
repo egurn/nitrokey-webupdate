@@ -139,14 +139,17 @@ async function send_command_long(cmd, addr, data, allow_failure) {
   }
 }
 
+async function UI_set_bootloader_executed(){
+  app.cannot_flash = null;
+  app.bootloader_called = true;
+  app.app_step = const_app_steps.bootloader_executed;
+}
+
 async function run_bootloader() {
   try {
     const response = await send_command(CMD.solo_bootloader, true);
     console.log("bootloader RESPONSE", response);
     // FIXME handle failure in call in UI
-    app.cannot_flash = null;
-    app.bootloader_called = true;
-    app.app_step = const_app_steps.bootloader_executed;
   } catch (error) {
     console.log(error);
     console.exception()
@@ -468,6 +471,7 @@ async function update_() {
         await run_bootloader();
       } else {
         bootloader_exec_success = true;
+        await UI_set_bootloader_executed();
         break;
       }
     } catch (e) {
