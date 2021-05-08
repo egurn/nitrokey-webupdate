@@ -1,3 +1,5 @@
+run: serve-local
+
 serve-local: venv
 	scripts/reloading-serve.sh venv/bin/python3 serve-local.py
 
