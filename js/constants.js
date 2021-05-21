@@ -8,14 +8,18 @@ const known_certs_hashed = {
 };
 
 const known_pubkey_hashed = {
-	"Nitrokey FIDO2":             "6910be885991e4c8776020e946e991474e2805db52445de99fb9c74dc54c8d53",
-	"Nitrokey FIDO2 Development": "f835275e39519a8305c629ce065f47a8b9577663bf5c57876f2cc76d03bbc078",
+	"Nitrokey FIDO2":                 "6910be885991e4c8776020e946e991474e2805db52445de99fb9c74dc54c8d53",
+  "Nitrokey FIDO2 2.0 128":         "2e5e55eb8f46d77bae183a8371073f04529725920ddee309d18787251b0645a1",
+  "Nitrokey FIDO2 Development":     "f835275e39519a8305c629ce065f47a8b9577663bf5c57876f2cc76d03bbc078",
 };
 
+const firmware_file_name_prefix = "fido2-firmware-"
+
 const firmware_file_name = {
-	"Nitrokey FIDO2":             "fido2-firmware-",
-	"Nitrokey FIDO2 2.0":             "fido2-firmware-",
-	"Nitrokey FIDO2 Development": "fido2-firmware-dev-",
+	"Nitrokey FIDO2":                 firmware_file_name_prefix,
+	"Nitrokey FIDO2 2.0":             firmware_file_name_prefix,
+  "Nitrokey FIDO2 2.0 128":         firmware_file_name_prefix + "128-",
+  "Nitrokey FIDO2 Development":     firmware_file_name_prefix + "dev-",
 };
 
 const supported_devices = Object.keys(firmware_file_name);
