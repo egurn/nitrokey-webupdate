@@ -13,13 +13,13 @@ const known_pubkey_hashed = {
   "Nitrokey FIDO2 Development":     "f835275e39519a8305c629ce065f47a8b9577663bf5c57876f2cc76d03bbc078",
 };
 
-const firmware_file_name_prefix = "fido2-firmware-"
+const firmware_file_name_prefix = "nitrokey-fido2-firmware-"
 
 const firmware_file_name = {
 	"Nitrokey FIDO2":                 firmware_file_name_prefix,
-	"Nitrokey FIDO2 2.0":             firmware_file_name_prefix,
-  "Nitrokey FIDO2 2.0 128":         firmware_file_name_prefix + "128-",
-  "Nitrokey FIDO2 Development":     firmware_file_name_prefix + "dev-",
+	"Nitrokey FIDO2 2.0":             firmware_file_name_prefix + "256kB-",
+  "Nitrokey FIDO2 2.0 128":         firmware_file_name_prefix + "128kB-",
+  "Nitrokey FIDO2 Development":     firmware_file_name_prefix + "256kB-dev-",
 };
 
 const supported_devices = Object.keys(firmware_file_name);
